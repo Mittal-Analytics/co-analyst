@@ -1,7 +1,33 @@
+import fitz
 import re
 import metadata as md
 import grading as gr
 import json
+
+
+def _find_page_range(pdf_path, statement_name):
+    if statement_name.lower() == "balance sheet":
+        keywords = [
+            "balance sheet",
+            "assets",
+            "cash",
+            "bank",
+            "fixed assets",
+            "liabilities",
+            "capital",
+            "equity",
+            "total",
+        ]
+    doc = fitz.open(pdf_path)
+    for page in doc:
+        matched_keywords = 0
+        text = page.get_text()
+        for keyword in keywords:
+            if keyword in text.lower():
+                matched_keywords += 1
+        if matched_keywords >= 8:
+            # +1 because index starts from 0.
+            return page.number + 1, page.number + 1
 
 
 def _find_column_positions(table):
@@ -195,7 +221,12 @@ def _extract_data_from_table(table, grading, column_names):
     return json.dumps(stack[0])
 
 
-def extract_data_from_pdf(pdf_path, start, end):
+def extract_data_from_pdf(pdf_path, **kwargs):
+    try:
+        start, end = kwargs["start"], kwargs["end"]
+    except KeyError:
+        start, end = _find_page_range(pdf_path, kwargs["statement_name"])
+
     metadata = md.generate_range(pdf_path, start, end)
     info = md.extract(
         metadata,
