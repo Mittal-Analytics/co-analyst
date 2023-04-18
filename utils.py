@@ -176,7 +176,11 @@ def _find_column_names(rows):
     return column_names
 
 
-# TODO: Remove list marker.
+def _remove_list_marker(title):
+    pattern = r"^[\dA-Za-z]+\.\s|\([^\)]*\)\s|\s*[-*•]+\s*"
+    return re.sub(pattern, "", title).strip()
+
+
 def _extract_data_from_table(table, grading, column_names):
     stack = [{"title": "Balance Sheet", "data": []}]
     for row in table:
@@ -185,36 +189,41 @@ def _extract_data_from_table(table, grading, column_names):
                 len(stack) > 1
                 and grading[row[0]["title"]] >= grading[stack[-1]["title"]]
             ):
+                stack[-1]["title"] = _remove_list_marker(stack[-1]["title"])
                 stack[-2]["data"].append(stack[-1])
                 stack.pop()
         except KeyError:
-            pass
+            if len(row) == 2:
+                stack[-1]["title"] = _remove_list_marker(stack[-1]["title"])
+                stack[-2]["data"].append(stack[-1])
+                stack.pop()
         stack.append({"title": row[0]["title"], "data": []})
         if len(row) == 2:
-            stack[-1]["title"] = stack[-3]["title"]
+            stack[-1]["title"] = stack[-2]["title"]
             stack[-1]["data"].append(
                 {
-                    column_names[2]: row[0]["title"],
-                    column_names[3]: row[1]["title"],
+                    column_names[2]: _remove_list_marker(row[0]["title"]),
+                    column_names[3]: _remove_list_marker(row[1]["title"]),
                 }
             )
         elif len(row) == 3:
             stack[-1]["data"].append(
                 {
-                    column_names[2]: row[1]["title"],
-                    column_names[3]: row[2]["title"],
+                    column_names[2]: _remove_list_marker(row[1]["title"]),
+                    column_names[3]: _remove_list_marker(row[2]["title"]),
                 }
             )
         elif len(row) == 4:
             stack[-1]["data"].append(
                 {
-                    column_names[1]: row[1]["title"],
-                    column_names[2]: row[2]["title"],
-                    column_names[3]: row[3]["title"],
+                    column_names[1]: _remove_list_marker(row[1]["title"]),
+                    column_names[2]: _remove_list_marker(row[2]["title"]),
+                    column_names[3]: _remove_list_marker(row[3]["title"]),
                 }
             )
 
     while len(stack) > 1:
+        stack[-1]["title"] = _remove_list_marker(stack[-1]["title"])
         stack[-2]["data"].append(stack[-1])
         stack.pop()
 

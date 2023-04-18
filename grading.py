@@ -72,7 +72,10 @@ def _point_has_no_list_marker(title):
     return 10
 
 
-# TODO: Add support for giving point for front margin.
+def _point_has_front_margin(left):
+    return int(left)
+
+
 def make_grading(table):
     grading = {}
     sizes = _find_sizes(table)
@@ -89,6 +92,7 @@ def make_grading(table):
         grading[row[0]["title"]] += _point_all_caps(row[0]["title"])
         grading[row[0]["title"]] += _point_has_no_number(row[0]["title"])
         grading[row[0]["title"]] += _point_has_no_list_marker(row[0]["title"])
+        grading[row[0]["title"]] -= _point_has_front_margin(row[0]["left"])
 
     grading = {k: v for k, v in sorted(grading.items(), key=lambda item: item[1])}
     return grading
