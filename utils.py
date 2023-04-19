@@ -157,23 +157,27 @@ def _find_first_row(table):
 
 
 def _find_column_names(rows):
-    column_names = []
+    cells = []
     for row in rows:
         for cell in row:
-            flag = True
-            lefts = [cell["left"] for cell in column_names]
-            for left in lefts:
-                diff = left - cell["left"]
-                if diff > 0 and diff < 50:
-                    column_names[lefts.index(left)]["title"] += " " + cell["title"]
-                    flag = False
-                    break
-            if flag:
-                column_names.append(cell)
-                column_names.sort(key=lambda x: x["left"])
-    column_names = [cell["title"] for cell in column_names]
-    if len(column_names) == 3:
-        column_names.insert(0, "Particulars")
+            cells.append(cell)
+    cells.sort(key=lambda x: x["left"])
+    columns = [[cells[0]]]
+    for cell in cells[1:]:
+        if cell["right"] <= columns[-1][0]["right"]:
+            columns[-1].append(cell)
+        else:
+            columns.append([cell])
+    column_names = []
+    for column in columns:
+        column.sort(key=lambda x: x["top"])
+        column_name = " ".join([cell["title"] for cell in column])
+        column_names.append(column_name)
+    if len(column_names) == 4:
+        column_names.pop(0)
+    column_names[0] = "Note"
+    column_names[1] = re.findall(r"\b\d{4}\b", column_names[1])[-1]
+    column_names[2] = re.findall(r"\b\d{4}\b", column_names[2])[-1]
     return column_names
 
 
@@ -203,23 +207,23 @@ def _extract_data_from_table(table, grading, column_names):
             stack[-1]["title"] = stack[-2]["title"]
             stack[-1]["data"].append(
                 {
-                    column_names[2]: _remove_list_marker(row[0]["title"]),
-                    column_names[3]: _remove_list_marker(row[1]["title"]),
+                    column_names[1]: _remove_list_marker(row[0]["title"]),
+                    column_names[2]: _remove_list_marker(row[1]["title"]),
                 }
             )
         elif len(row) == 3:
             stack[-1]["data"].append(
                 {
-                    column_names[2]: _remove_list_marker(row[1]["title"]),
-                    column_names[3]: _remove_list_marker(row[2]["title"]),
+                    column_names[1]: _remove_list_marker(row[1]["title"]),
+                    column_names[2]: _remove_list_marker(row[2]["title"]),
                 }
             )
         elif len(row) == 4:
             stack[-1]["data"].append(
                 {
-                    column_names[1]: _remove_list_marker(row[1]["title"]),
-                    column_names[2]: _remove_list_marker(row[2]["title"]),
-                    column_names[3]: _remove_list_marker(row[3]["title"]),
+                    column_names[0]: _remove_list_marker(row[1]["title"]),
+                    column_names[1]: _remove_list_marker(row[2]["title"]),
+                    column_names[2]: _remove_list_marker(row[3]["title"]),
                 }
             )
 
