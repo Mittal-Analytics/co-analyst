@@ -7,7 +7,7 @@ import json
 
 
 def _find_page_range(pdf_path, statement_name):
-    if statement_name.lower() == "balance sheet":
+    if statement_name == "balance sheet":
         keywords = [
             "balance sheet",
             "assets",
@@ -29,6 +29,20 @@ def _find_page_range(pdf_path, statement_name):
         if matched_keywords >= 8:
             # +1 because index starts from 0.
             return page.number + 1, page.number + 1
+
+
+def _find_statement_name(pdf_path, start, end):
+    possible_statements = [
+        "balance sheet",
+        "profit and loss",
+        "cash flow",
+    ]
+    doc = fitz.open(pdf_path)
+    page = doc[start - 1]
+    text = page.get_text().lower()
+    for statement in possible_statements:
+        if statement in text:
+            return statement
 
 
 def _find_unit(pdf_path, start, end):
@@ -214,8 +228,8 @@ def _remove_list_marker(title):
     return re.sub(pattern, "", title).strip()
 
 
-def _extract_data_from_table(table, grading, column_names, unit):
-    stack = [{"title": "Balance Sheet", "unit": unit, "data": []}]
+def _extract_data_from_table(statement_name, table, grading, column_names, unit):
+    stack = [{"title": statement_name, "unit": unit, "data": []}]
     for row in table:
         try:
             while (
@@ -269,9 +283,11 @@ def extract_data_from_pdf(pdf_path, **kwargs):
 
     try:
         start, end = kwargs["start"], kwargs["end"]
+        statement_name = _find_statement_name(pdf_path, start, end)
     except KeyError:
         try:
-            start, end = _find_page_range(pdf_path, kwargs["statement_name"])
+            statement_name = kwargs["statement_name"].lower()
+            start, end = _find_page_range(pdf_path, statement_name)
         except KeyError:
             raise KeyError("Either start and end or statement_name must be provided")
 
@@ -330,6 +346,6 @@ def extract_data_from_pdf(pdf_path, **kwargs):
     table = table[first_row:]
 
     grading = gr.make_grading(table)
-    data = _extract_data_from_table(table, grading, column_names, unit)
+    data = _extract_data_from_table(statement_name, table, grading, column_names, unit)
 
     return data
