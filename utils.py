@@ -1,3 +1,4 @@
+import os
 import fitz
 import re
 import metadata as md
@@ -231,10 +232,16 @@ def _extract_data_from_table(table, grading, column_names):
 
 
 def extract_data_from_pdf(pdf_path, **kwargs):
+    if not os.path.exists(pdf_path):
+        raise FileNotFoundError(f"File not found at {pdf_path}")
+
     try:
         start, end = kwargs["start"], kwargs["end"]
     except KeyError:
-        start, end = _find_page_range(pdf_path, kwargs["statement_name"])
+        try:
+            start, end = _find_page_range(pdf_path, kwargs["statement_name"])
+        except KeyError:
+            raise KeyError("Either start and end or statement_name must be provided")
 
     metadata = md.generate_range(pdf_path, start, end)
     info = md.extract(
