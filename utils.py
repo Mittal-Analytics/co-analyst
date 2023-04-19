@@ -31,6 +31,34 @@ def _find_page_range(pdf_path, statement_name):
             return page.number + 1, page.number + 1
 
 
+def _find_unit(pdf_path, start, end):
+    possible_units = [
+        "trillions",
+        "billions",
+        "crores",
+        "millions",
+        "lakhs",
+        "thousands",
+    ]
+    possible_numerical_units = [
+        "000000000000s",
+        "000000000s",
+        "0000000s",
+        "000000s",
+        "00000s",
+        "000s",
+    ]
+    doc = fitz.open(pdf_path)
+    page = doc[start - 1]
+    text = page.get_text().lower()
+    for unit in possible_units:
+        if unit in text:
+            return unit
+    for unit in possible_numerical_units:
+        if unit in text:
+            return possible_units[possible_numerical_units.index(unit)]
+
+
 def _find_column_positions(table):
     column_positions = []
     # Assuming there will always be 4 columns.
@@ -104,7 +132,7 @@ def _sanitize_line_break(table, max_length, index=0):
     return _sanitize_line_break(table, max_length, index + 1)
 
 
-def _found_first_row_match(row, column_positions):
+def _is_first_row_match(row, column_positions):
     row_length = len(row)
     if row_length == 3:
         for i in range(3):
@@ -119,7 +147,7 @@ def _found_first_row_match(row, column_positions):
     return True
 
 
-def _found_last_row_match(row, column_positions):
+def _is_last_row_match(row, column_positions):
     row_length = len(row)
     if row_length == 3:
         if (
@@ -136,11 +164,11 @@ def _found_last_row_match(row, column_positions):
 def _find_table_range(table, column_positions):
     table_range = []
     for row in table:
-        if _found_first_row_match(row, column_positions):
+        if _is_first_row_match(row, column_positions):
             table_range.append(table.index(row))
             break
     for row in table[::-1]:
-        if _found_last_row_match(row, column_positions):
+        if _is_last_row_match(row, column_positions):
             table_range.append(table.index(row))
             break
     return table_range
@@ -186,8 +214,8 @@ def _remove_list_marker(title):
     return re.sub(pattern, "", title).strip()
 
 
-def _extract_data_from_table(table, grading, column_names):
-    stack = [{"title": "Balance Sheet", "data": []}]
+def _extract_data_from_table(table, grading, column_names, unit):
+    stack = [{"title": "Balance Sheet", "unit": unit, "data": []}]
     for row in table:
         try:
             while (
@@ -247,6 +275,7 @@ def extract_data_from_pdf(pdf_path, **kwargs):
         except KeyError:
             raise KeyError("Either start and end or statement_name must be provided")
 
+    unit = _find_unit(pdf_path, start, end)
     metadata = md.generate_range(pdf_path, start, end)
     info = md.extract(
         metadata,
@@ -301,6 +330,6 @@ def extract_data_from_pdf(pdf_path, **kwargs):
     table = table[first_row:]
 
     grading = gr.make_grading(table)
-    data = _extract_data_from_table(table, grading, column_names)
+    data = _extract_data_from_table(table, grading, column_names, unit)
 
     return data
