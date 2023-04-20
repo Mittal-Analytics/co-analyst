@@ -33,9 +33,9 @@ def _find_page_range(pdf_path, statement_name):
 
 def _find_statement_name(pdf_path, start, end):
     possible_statements = [
-        "balance sheet",
-        "profit and loss",
         "cash flow",
+        "profit and loss",
+        "balance sheet",
     ]
     doc = fitz.open(pdf_path)
     page = doc[start - 1]
@@ -94,6 +94,8 @@ def _find_column_positions(table):
             tmp.sort(key=lambda x: x[1], reverse=True)
             left = tmp[0][0]
             column_positions.append({"left": left})
+    if column_positions[1]["left"] < column_positions[2]["left"] - 100:
+        column_positions[1]["left"] = column_positions[2]["left"] - 100
     return column_positions
 
 
@@ -188,14 +190,19 @@ def _find_table_range(table, column_positions):
     return table_range
 
 
-def _find_first_row(table):
-    for row in table:
-        if (
-            "assets" in row[0]["title"].lower()
-            or "capital and liabilities" in row[0]["title"].lower()
-            or "equity and liabilities" in row[0]["title"].lower()
-        ):
-            return table.index(row)
+def _find_first_row(table, statement_name):
+    if statement_name == "balance sheet":
+        for row in table:
+            if (
+                "assets" in row[0]["title"].lower()
+                or "capital and liabilities" in row[0]["title"].lower()
+                or "equity and liabilities" in row[0]["title"].lower()
+            ):
+                return table.index(row)
+    elif statement_name == "profit and loss":
+        for row in table:
+            if "income" in row[0]["title"].lower():
+                return table.index(row)
 
 
 def _find_column_names(rows):
@@ -347,7 +354,7 @@ def extract_data_from_pdf(pdf_path, **kwargs):
 
     _sanitize_line_break(table, _find_max_length(table))
 
-    first_row = _find_first_row(table)
+    first_row = _find_first_row(table, statement_name)
     column_names = _find_column_names(table[0:first_row])
     table = table[first_row:]
 
