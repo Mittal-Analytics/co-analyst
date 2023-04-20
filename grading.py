@@ -86,13 +86,15 @@ def make_grading(table):
     for row in table:
         if re.match(r"^\d{1,3}(,\d{3})*(\.\d+)?|\d+(\.\d+)?$", row[0]["title"]):
             continue
-        grading[row[0]["title"]] = _point_size(row[0]["size"], sizes)
-        grading[row[0]["title"]] += _point_color(row[0]["color"], colors)
-        grading[row[0]["title"]] += _point_bold(row[0]["bold"])
-        grading[row[0]["title"]] += _point_all_caps(row[0]["title"])
-        grading[row[0]["title"]] += _point_has_no_number(row[0]["title"])
-        grading[row[0]["title"]] += _point_has_no_list_marker(row[0]["title"])
-        grading[row[0]["title"]] -= _point_has_front_margin(row[0]["left"])
+        grading[row[0]["title"]] = (
+            _point_size(row[0]["size"], sizes)
+            + _point_color(row[0]["color"], colors)
+            + _point_bold(row[0]["bold"])
+            + _point_all_caps(row[0]["title"])
+            + _point_has_no_number(row[0]["title"])
+            + _point_has_no_list_marker(row[0]["title"])
+            - _point_has_front_margin(row[0]["left"])
+        )
 
     grading = {k: v for k, v in sorted(grading.items(), key=lambda item: item[1])}
     return grading

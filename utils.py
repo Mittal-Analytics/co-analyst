@@ -228,6 +228,12 @@ def _remove_list_marker(title):
     return re.sub(pattern, "", title).strip()
 
 
+def _n(title):
+    if title[0] == "(" and title[-1] == ")":
+        return f"-{title[1:-1]}"
+    return title
+
+
 def _extract_data_from_table(statement_name, table, grading, column_names, unit):
     stack = [{"title": statement_name, "unit": unit, "data": []}]
     for row in table:
@@ -249,23 +255,23 @@ def _extract_data_from_table(statement_name, table, grading, column_names, unit)
             stack[-1]["title"] = stack[-2]["title"]
             stack[-1]["data"].append(
                 {
-                    column_names[1]: _remove_list_marker(row[0]["title"]),
-                    column_names[2]: _remove_list_marker(row[1]["title"]),
+                    column_names[1]: _n(_remove_list_marker(row[0]["title"])),
+                    column_names[2]: _n(_remove_list_marker(row[1]["title"])),
                 }
             )
         elif len(row) == 3:
             stack[-1]["data"].append(
                 {
-                    column_names[1]: _remove_list_marker(row[1]["title"]),
-                    column_names[2]: _remove_list_marker(row[2]["title"]),
+                    column_names[1]: _n(_remove_list_marker(row[1]["title"])),
+                    column_names[2]: _n(_remove_list_marker(row[2]["title"])),
                 }
             )
         elif len(row) == 4:
             stack[-1]["data"].append(
                 {
                     column_names[0]: _remove_list_marker(row[1]["title"]),
-                    column_names[1]: _remove_list_marker(row[2]["title"]),
-                    column_names[2]: _remove_list_marker(row[3]["title"]),
+                    column_names[1]: _n(_remove_list_marker(row[2]["title"])),
+                    column_names[2]: _n(_remove_list_marker(row[3]["title"])),
                 }
             )
 
