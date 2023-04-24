@@ -33,8 +33,8 @@ def _find_page_range(pdf_path, statement_name):
 
 def _find_statement_name(pdf_path, start, end):
     possible_statements = [
-        "cash flow",
         "profit and loss",
+        "cash flow",
         "balance sheet",
     ]
     doc = fitz.open(pdf_path)
