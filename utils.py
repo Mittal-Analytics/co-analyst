@@ -73,6 +73,51 @@ def _find_unit(pdf_path, start, end):
             return possible_units[possible_numerical_units.index(unit)]
 
 
+def _find_separation_point(table):
+    lefts = []
+    for row in table:
+        for cell in row[1:]:
+            lefts.append(cell["left"])
+    lefts.sort()
+    left_count = [[lefts[0], 1]]
+    for left in lefts[1:]:
+        if left - left_count[-1][0] > 50:
+            left_count.append([left - 1, 1])
+        else:
+            left_count[-1][1] += 1
+    left_count.sort(key=lambda x: x[1], reverse=True)
+    if left_count[0][1] > 32:
+        return left_count[0][0]
+    return None
+
+
+def _separate_cells(row, separation_point):
+    separated_cells = [[], []]
+    for cell in row:
+        if cell["left"] < separation_point:
+            separated_cells[0].append(cell)
+        else:
+            separated_cells[1].append(cell)
+    return separated_cells
+
+
+def _separate_if_two(table):
+    separation_point = _find_separation_point(table)
+    if separation_point == None:
+        return [table]
+    separated_tables = [[], []]
+    for row in table:
+        if row[-1]["left"] < separation_point:
+            separated_tables[0].append(row)
+            continue
+        separated_cells = _separate_cells(row, separation_point)
+        if len(separated_cells[0]) > 0:
+            separated_tables[0].append(separated_cells[0])
+        if len(separated_cells[1]) > 0:
+            separated_tables[1].append(separated_cells[1])
+    return separated_tables
+
+
 def _find_column_positions(table):
     column_positions = []
     # Assuming there will always be 4 columns.
@@ -336,29 +381,36 @@ def extract_data_from_pdf(pdf_path, **kwargs):
     table = []
     row = []
     for cell in cells:
-        if len(row) == 0 or cell["top"] - row[-1]["top"] < 5:
+        if len(row) == 0 or cell["top"] - row[0]["top"] < 5:
             row.append(cell)
         else:
             table.append(sorted(row, key=lambda x: x["left"]))
             row = [cell]
 
-    column_positions = _find_column_positions(table)
-    table = _unite_separated_cells(table, column_positions)
+    table = _separate_if_two(table)
 
-    for row in table:
-        for cell in row:
-            cell["title"] = _santize(cell)
+    if len(table) == 1:
+        table = table[0]
+        column_positions = _find_column_positions(table)
+        table = _unite_separated_cells(table, column_positions)
 
-    start, end = _find_table_range(table, column_positions)
-    table = table[start : end + 1]
+        for row in table:
+            for cell in row:
+                cell["title"] = _santize(cell)
 
-    _sanitize_line_break(table, _find_max_length(table))
+        start, end = _find_table_range(table, column_positions)
+        table = table[start : end + 1]
 
-    first_row = _find_first_row(table, statement_name)
-    column_names = _find_column_names(table[0:first_row])
-    table = table[first_row:]
+        _sanitize_line_break(table, _find_max_length(table))
 
-    grading = gr.make_grading(table)
-    data = _extract_data_from_table(statement_name, table, grading, column_names, unit)
+        first_row = _find_first_row(table, statement_name)
+        column_names = _find_column_names(table[0:first_row])
+        table = table[first_row:]
 
-    return data
+        grading = gr.make_grading(table)
+        data = _extract_data_from_table(
+            statement_name, table, grading, column_names, unit
+        )
+
+        return data
+    return "WIP"
