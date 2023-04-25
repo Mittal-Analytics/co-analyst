@@ -47,12 +47,12 @@ def _find_statement_name(pdf_path, start, end):
 
 def _find_unit(pdf_path, start, end):
     possible_units = [
-        "trillions",
-        "billions",
-        "crores",
-        "millions",
-        "lakhs",
-        "thousands",
+        ["trillions", "trillion"],
+        ["billions", "billion"],
+        ["crores", "crore"],
+        ["millions", "million"],
+        ["lakhs", "lakh"],
+        ["thousands", "thousand"],
     ]
     possible_numerical_units = [
         "000000000000s",
@@ -65,12 +65,13 @@ def _find_unit(pdf_path, start, end):
     doc = fitz.open(pdf_path)
     page = doc[start - 1]
     text = page.get_text().lower()
-    for unit in possible_units:
-        if unit in text:
-            return unit
+    for units in possible_units:
+        for unit in units:
+            if unit in text:
+                return units[0]
     for unit in possible_numerical_units:
         if unit in text:
-            return possible_units[possible_numerical_units.index(unit)]
+            return possible_units[possible_numerical_units.index(unit)][0]
 
 
 def _find_separation_point(table):
