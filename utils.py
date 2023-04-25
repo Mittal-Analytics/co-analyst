@@ -160,6 +160,19 @@ def _unite_separated_cells(table, column_positions):
     return table
 
 
+def _find_statement_name_from_table(table):
+    possible_statements = [
+        "profit and loss",
+        "cash flow",
+        "balance sheet",
+    ]
+    for row in table:
+        for cell in row:
+            for statement in possible_statements:
+                if statement in cell["title"].lower():
+                    return statement
+
+
 def _sanitize(cell):
     # Remove all commas for numerical values otherwise all dots.
     if re.match(r"^\d{1,3}(,\d{3})*(\.\d+)?|\d+(\.\d+)?$", cell["title"]):
@@ -276,7 +289,7 @@ def _find_column_names(rows):
 
 
 def _remove_list_marker(title):
-    pattern = r"^[\dA-Za-z]+\.\s|\([^\)]*\)\s|\s*[-*•]+\s*"
+    pattern = r"^[\dA-Za-z]+\.\s|\([^\)]*\)\s|\s*[-*•]+(?=\s)"
     return re.sub(pattern, "", title).strip()
 
 
@@ -332,7 +345,7 @@ def _extract_data_from_table(statement_name, table, grading, column_names, unit)
         stack[-2]["data"].append(stack[-1])
         stack.pop()
 
-    return json.dumps(stack[0])
+    return stack[0]
 
 
 def extract_data_from_pdf(pdf_path, **kwargs):
@@ -378,25 +391,27 @@ def extract_data_from_pdf(pdf_path, **kwargs):
         )
     cells.sort(key=lambda x: x["top"])
 
-    table = []
+    tables = []
     row = []
     for cell in cells:
         if len(row) == 0 or cell["top"] - row[0]["top"] < 5:
             row.append(cell)
         else:
-            table.append(sorted(row, key=lambda x: x["left"]))
+            tables.append(sorted(row, key=lambda x: x["left"]))
             row = [cell]
 
-    table = _separate_if_two(table)
+    tables = _separate_if_two(tables)
 
-    if len(table) == 1:
-        table = table[0]
+    response = []
+    for table in tables:
         column_positions = _find_column_positions(table)
         table = _unite_separated_cells(table, column_positions)
 
         for row in table:
             for cell in row:
                 cell["title"] = _sanitize(cell)
+
+        statement_name = _find_statement_name_from_table(table)
 
         start, end = _find_table_range(table, column_positions)
         table = table[start : end + 1]
@@ -412,5 +427,5 @@ def extract_data_from_pdf(pdf_path, **kwargs):
             statement_name, table, grading, column_names, unit
         )
 
-        return data
-    return "WIP"
+        response.append(data)
+    return json.dumps(response)
