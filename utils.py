@@ -160,8 +160,8 @@ def _unite_separated_cells(table, column_positions):
     return table
 
 
-def _santize(cell):
-    # Remove all commas for nummerical values otherwise all dots.
+def _sanitize(cell):
+    # Remove all commas for numerical values otherwise all dots.
     if re.match(r"^\d{1,3}(,\d{3})*(\.\d+)?|\d+(\.\d+)?$", cell["title"]):
         return cell["title"].replace(",", "").strip()
     return cell["title"].rstrip(".").strip()
@@ -396,7 +396,7 @@ def extract_data_from_pdf(pdf_path, **kwargs):
 
         for row in table:
             for cell in row:
-                cell["title"] = _santize(cell)
+                cell["title"] = _sanitize(cell)
 
         start, end = _find_table_range(table, column_positions)
         table = table[start : end + 1]
