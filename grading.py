@@ -25,19 +25,14 @@ def _point_size(size, sizes):
 
 
 def _find_colors(table):
-    colors = []
+    colors = {}
     for row in table:
-        colors.append(row[0]["color"])
-    final = []
-    tmp = set(colors)
-    for i in range(len(tmp)):
-        count = colors.count(colors[0])
-        final.append((colors[0], count))
-        while count:
-            colors.remove(colors[0])
-            count -= 1
-    final.sort(key=lambda x: x[1], reverse=True)
-    return final
+        if row[0]["color"] in colors:
+            colors[row[0]["color"]] += 1
+        else:
+            colors[row[0]["color"]] = 1
+    colors = [k for k in sorted(colors.items(), key=lambda item: item[1], reverse=True)]
+    return colors
 
 
 def _point_color(color, colors):
