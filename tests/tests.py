@@ -1,5 +1,5 @@
 import unittest
-from utils import extract_data_from_pdf
+from analyst import extract_data_from_pdf
 
 
 class TestExtractDataFromPdf(unittest.TestCase):
