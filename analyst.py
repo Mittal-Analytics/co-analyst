@@ -273,8 +273,11 @@ def _find_column_names(rows):
     if len(column_names) == 4:
         column_names.pop(0)
     column_names[0] = "Note"
-    column_names[1] = re.findall(r"\b\d{4}\b", column_names[1])[-1]
-    column_names[2] = re.findall(r"\b\d{4}\b", column_names[2])[-1]
+    for i in range(1, 3):
+        is_range = "-" in column_names[i]
+        column_names[i] = re.findall(r"\b\d{4}\b", column_names[i])[0]
+        if is_range:
+            column_names[i] = str(int(column_names[i]) + 1)
     return column_names
 
 
