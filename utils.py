@@ -31,20 +31,6 @@ def _find_page_range(pdf_path, statement_name):
             return page.number + 1, page.number + 1
 
 
-def _find_statement_name(pdf_path, start, end):
-    possible_statements = [
-        "profit and loss",
-        "cash flow",
-        "balance sheet",
-    ]
-    doc = fitz.open(pdf_path)
-    page = doc[start - 1]
-    text = page.get_text().lower()
-    for statement in possible_statements:
-        if statement in text:
-            return statement
-
-
 def _find_unit(pdf_path, start, end):
     possible_units = [
         ["trillions", "trillion"],
@@ -83,7 +69,7 @@ def _find_separation_point(table):
     left_count = [[lefts[0], 1]]
     for left in lefts[1:]:
         if left - left_count[-1][0] > 50:
-            left_count.append([left - 1, 1])
+            left_count.append([left, 1])
         else:
             left_count[-1][1] += 1
     left_count.sort(key=lambda x: x[1], reverse=True)
@@ -108,9 +94,6 @@ def _separate_if_two(table):
         return [table]
     separated_tables = [[], []]
     for row in table:
-        if row[-1]["left"] < separation_point:
-            separated_tables[0].append(row)
-            continue
         separated_cells = _separate_cells(row, separation_point)
         if len(separated_cells[0]) > 0:
             separated_tables[0].append(separated_cells[0])
@@ -161,7 +144,7 @@ def _unite_separated_cells(table, column_positions):
     return table
 
 
-def _find_statement_name_from_table(table):
+def _find_statement_name(table):
     possible_statements = [
         "profit and loss",
         "cash flow",
@@ -355,7 +338,6 @@ def extract_data_from_pdf(pdf_path, **kwargs):
 
     try:
         start, end = kwargs["start"], kwargs["end"]
-        statement_name = _find_statement_name(pdf_path, start, end)
     except KeyError:
         try:
             statement_name = kwargs["statement_name"].lower()
@@ -412,7 +394,7 @@ def extract_data_from_pdf(pdf_path, **kwargs):
             for cell in row:
                 cell["title"] = _sanitize(cell)
 
-        statement_name = _find_statement_name_from_table(table)
+        statement_name = _find_statement_name(table)
 
         start, end = _find_table_range(table, column_positions)
         table = table[start : end + 1]
