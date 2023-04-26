@@ -123,8 +123,11 @@ def _find_column_positions(table):
             tmp.sort(key=lambda x: x[1], reverse=True)
             left = tmp[0][0]
             column_positions.append({"left": left})
-    if column_positions[1]["left"] < column_positions[2]["left"] - 100:
-        column_positions[1]["left"] = column_positions[2]["left"] - 100
+    diff = column_positions[3]["left"] - column_positions[2]["left"]
+    if column_positions[1]["left"] < column_positions[2]["left"] - diff:
+        column_positions[1]["left"] = column_positions[2]["left"] - diff
+    for column_position in column_positions:
+        column_position["left"] -= round(diff / 6)
     return column_positions
 
 
@@ -181,13 +184,16 @@ def _merge_rows(table, row1, row2):
     table.remove(row2)
 
 
-def _sanitize_line_break(table, max_length, index=0):
+def _sanitize_line_break(table, max_length, max_right, index=0):
     if index == len(table) - 1:
         return table
-    if len(table[index][0]["title"]) >= max_length - 5:
+    if (
+        table[index][0]["right"] >= max_right
+        and len(table[index][0]["title"]) >= max_length - 5
+    ):
         if len(table[index]) == 1 or len(table[index + 1]) == 1:
             _merge_rows(table, table[index], table[index + 1])
-    return _sanitize_line_break(table, max_length, index + 1)
+    return _sanitize_line_break(table, max_length, max_right, index + 1)
 
 
 def _is_first_row_match(row, column_positions):
@@ -399,7 +405,10 @@ def extract_data_from_pdf(pdf_path, **kwargs):
         start, end = _find_table_range(table, column_positions)
         table = table[start : end + 1]
 
-        _sanitize_line_break(table, _find_max_length(table))
+        max_right = column_positions[1]["left"] - (
+            column_positions[2]["left"] - column_positions[1]["left"] * 3 / 2
+        )
+        _sanitize_line_break(table, _find_max_length(table), max_right)
 
         first_row = _find_first_row(table, statement_name)
         column_names = _find_column_names(table[0:first_row])
