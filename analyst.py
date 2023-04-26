@@ -137,7 +137,10 @@ def _unite_separated_cells(table, column_positions):
         if row_length > 1:
             i = 0
             while i < row_length - 1 and i < 3:
-                if row[i + 1]["left"] < column_positions[i + 1]["left"]:
+                if row[i]["title"].strip() == "":
+                    row.pop(i)
+                    row_length -= 1
+                elif row[i + 1]["left"] < column_positions[i + 1]["left"]:
                     row[i]["title"] += " " + row[i + 1]["title"]
                     row[i]["right"] = row[i + 1]["right"]
                     row.pop(i + 1)

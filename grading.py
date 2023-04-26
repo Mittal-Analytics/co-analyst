@@ -31,8 +31,8 @@ def _find_colors(table):
             colors[row[0]["color"]] += 1
         else:
             colors[row[0]["color"]] = 1
-    colors = [k for k in sorted(colors.items(), key=lambda item: item[1], reverse=True)]
-    return colors
+    colors = list(colors.items())
+    return sorted(colors, key=lambda x: (x[1], colors.index(x)), reverse=True)
 
 
 def _point_color(color, colors):
