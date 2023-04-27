@@ -1,20 +1,16 @@
 import re
 
 
-def _find_sizes(table):
-    sizes = []
+def _find_property_values(table, property):
+    res = {}
     for row in table:
-        sizes.append(row[0]["size"])
-    final = []
-    tmp = set(sizes)
-    for i in range(len(tmp)):
-        count = sizes.count(sizes[0])
-        final.append((sizes[0], count))
-        while count:
-            sizes.remove(sizes[0])
-            count -= 1
-    final.sort(key=lambda x: x[1], reverse=True)
-    return final
+        if row[0][property] in res:
+            res[row[0][property]] += 1
+        else:
+            res[row[0][property]] = 1
+    res = list(res.items())
+    res.sort(key=lambda x: x[1], reverse=True)
+    return res
 
 
 def _point_size(size, sizes):
@@ -22,17 +18,6 @@ def _point_size(size, sizes):
         if size == sizes[i][0]:
             return i + 50
     return -5
-
-
-def _find_colors(table):
-    colors = {}
-    for row in table:
-        if row[0]["color"] in colors:
-            colors[row[0]["color"]] += 1
-        else:
-            colors[row[0]["color"]] = 1
-    colors = list(colors.items())
-    return sorted(colors, key=lambda x: (x[1], colors.index(x)), reverse=True)
 
 
 def _point_color(color, colors):
@@ -73,8 +58,8 @@ def _point_has_front_margin(left):
 
 def make_grading(table):
     grading = {}
-    sizes = _find_sizes(table)
-    colors = _find_colors(table)
+    sizes = _find_property_values(table, "size")
+    colors = _find_property_values(table, "color")
     # We do not need the most common size and color.
     sizes.pop(0)
     colors.pop(0)
