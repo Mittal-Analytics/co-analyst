@@ -73,7 +73,7 @@ def _find_separation_point(table):
         else:
             left_count[-1][1] += 1
     left_count.sort(key=lambda x: x[1], reverse=True)
-    if left_count[0][1] > 32:
+    if left_count[0][1] > 25:
         return left_count[0][0]
     return None
 
@@ -241,19 +241,15 @@ def _find_table_range(table, column_positions):
     return table_range
 
 
-def _find_first_row(table, statement_name):
-    if statement_name == "balance sheet":
-        for row in table:
-            if (
-                "assets" in row[0]["title"].lower()
-                or "capital and liabilities" in row[0]["title"].lower()
-                or "equity and liabilities" in row[0]["title"].lower()
-            ):
-                return table.index(row)
-    elif statement_name == "profit and loss":
-        for row in table:
-            if "income" in row[0]["title"].lower():
-                return table.index(row)
+def _find_first_row(table):
+    for row in table:
+        if (
+            "assets" in row[0]["title"].lower()
+            or "capital and liabilities" in row[0]["title"].lower()
+            or "equity and liabilities" in row[0]["title"].lower()
+            or "income" in row[0]["title"].lower()
+        ):
+            return table.index(row)
 
 
 def _find_column_names(rows):
@@ -416,7 +412,7 @@ def extract_data_from_pdf(pdf_path, **kwargs):
         )
         _sanitize_line_break(table, _find_max_length(table), max_right)
 
-        first_row = _find_first_row(table, statement_name)
+        first_row = _find_first_row(table)
         column_names = _find_column_names(table[0:first_row])
         table = table[first_row:]
 
@@ -425,5 +421,8 @@ def extract_data_from_pdf(pdf_path, **kwargs):
             statement_name, table, grading, column_names, unit
         )
 
-        response.append(data)
+        if data["title"] == None:
+            response[-1]["data"].append(data["data"][0])
+        else:
+            response.append(data)
     return json.dumps(response)
