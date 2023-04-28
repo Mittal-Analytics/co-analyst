@@ -105,29 +105,32 @@ def _separate_if_two(table):
 def _find_column_positions(table):
     column_positions = []
     # Assuming there will always be 4 columns.
-    for i in range(4):
-        lefts = []
-        for row in table:
-            if len(row) == 4:
-                lefts.append(row[i]["left"])
-        if i == 0:
-            column_positions.append({"left": min(lefts)})
-        else:
-            lefts.sort()
-            tmp = [[lefts[0], 1]]
-            for left in lefts[1:]:
-                if left - tmp[-1][0] > 10:
-                    tmp.append([left, 1])
-                else:
-                    tmp[-1][1] += 1
-            tmp.sort(key=lambda x: x[1], reverse=True)
-            left = tmp[0][0]
-            column_positions.append({"left": left})
-    diff = column_positions[3]["left"] - column_positions[2]["left"]
-    if column_positions[1]["left"] < column_positions[2]["left"] - diff:
-        column_positions[1]["left"] = column_positions[2]["left"] - diff
-    for column_position in column_positions:
-        column_position["left"] -= round(diff / 6)
+    columns = [[], [], [], []]
+    for row in table:
+        if len(row) == 4:
+            for cell in row:
+                columns[row.index(cell)].append([cell["left"], cell["right"]])
+    for column in columns[::-1]:
+        column.sort(key=lambda x: x[0])
+        left_count = [[column[0][0], 1]]
+        for cell in column[1:]:
+            if cell[0] - left_count[-1][0] > 10:
+                left_count.append([cell[0], 1])
+            else:
+                left_count[-1][1] += 1
+        left_count.sort(key=lambda x: x[1], reverse=True)
+        left = left_count[0][0]
+        column.sort(key=lambda x: x[1])
+        right = column[-1][1]
+        if len(column_positions):
+            for cell in column:
+                if cell[1] > right and cell[1] < column_positions[-1]["left"]:
+                    right = cell[1]
+            for cell in columns[columns.index(column) + 1]:
+                if cell[0] < column_positions[-1]["left"] and cell[0] > right:
+                    column_positions[-1]["left"] = cell[0]
+        column_positions.append({"left": left, "right": right})
+    column_positions = column_positions[::-1]
     return column_positions
 
 

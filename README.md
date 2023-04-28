@@ -1,4 +1,4 @@
-# co-analyst (beta)
+# co-analyst (unstable)
 
 I am sure you need a `co-analyst` who doesn't get tired.
 
@@ -23,4 +23,4 @@ analyst.extract_data_from_pdf(pdf_path, statement_name="abc")
 ```
 
 Currently, only extracting data from a Balance Sheet is supported
-where it is on a single page and is the only thing in that page.
+where it is on a single page.
