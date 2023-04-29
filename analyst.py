@@ -107,7 +107,11 @@ def _find_column_positions(table):
     # Assuming there will always be 4 columns.
     columns = [[], [], [], []]
     for row in table:
-        if len(row) == 4:
+        if len(row) >= 4:
+            while len(row) != 4:
+                row[0]["title"] += row[1]["title"]
+                row[0]["right"] = row[1]["right"]
+                row.pop(1)
             for cell in row:
                 columns[row.index(cell)].append([cell["left"], cell["right"]])
     for column in columns[::-1]:
