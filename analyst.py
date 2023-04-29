@@ -68,7 +68,7 @@ def _find_separation_point(table):
     lefts.sort()
     left_count = [[lefts[0], 1]]
     for left in lefts[1:]:
-        if left - left_count[-1][0] > 10:
+        if left != left_count[-1][0]:
             left_count.append([left, 1])
         else:
             left_count[-1][1] += 1
