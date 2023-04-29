@@ -7,31 +7,40 @@ import json
 
 
 def _find_page_range(pdf_path, statement_name):
-    if statement_name == "balance sheet":
-        keywords = [
-            "balance sheet",
-            "assets",
-            "cash",
-            "bank",
-            "fixed assets",
-            "liabilities",
-            "capital",
-            "equity",
-            "total",
-        ]
+    page_ranges = []
     doc = fitz.open(pdf_path)
-    for page in doc:
-        matched_keywords = 0
-        text = page.get_text()
-        for keyword in keywords:
-            if keyword in text.lower():
-                matched_keywords += 1
-        if matched_keywords >= 8:
-            # +1 because index starts from 0.
-            return page.number + 1, page.number + 1
+    for i in range(len(doc)):
+        page = doc[i]
+        text = page.get_text().lower()
+        if statement_name in text:
+            metadata = md.generate_range(pdf_path, i + 1, i + 1)
+            info = md.extract(metadata, ["font.size", "font.bold"])
+            cells = []
+            for inf in info:
+                if len(inf["title"].strip()) >= 2:
+                    cells.append(
+                        {
+                            "title": inf["title"],
+                            "size": float(inf["fields"]["font.size"]),
+                        }
+                    )
+            sizes = {}
+            statement_cell = None
+            for cell in cells:
+                if cell["size"] in sizes:
+                    sizes[cell["size"]] += 1
+                else:
+                    sizes[cell["size"]] = 1
+            for cell in cells:
+                if statement_name in cell["title"].lower().strip():
+                    statement_cell = cell
+                    break
+            if sizes[statement_cell["size"]] <= 2:
+                page_ranges.append((i + 1, i + 1))
+    return page_ranges[0]
 
 
-def _find_unit(pdf_path, start, end):
+def _find_unit(pdf_path, start):
     possible_units = [
         ["trillions", "trillion"],
         ["billions", "billion"],
@@ -360,7 +369,7 @@ def extract_data_from_pdf(pdf_path, **kwargs):
         except KeyError:
             raise KeyError("Either start and end or statement_name must be provided")
 
-    unit = _find_unit(pdf_path, start, end)
+    unit = _find_unit(pdf_path, start)
     metadata = md.generate_range(pdf_path, start, end)
     info = md.extract(
         metadata,
@@ -375,16 +384,16 @@ def extract_data_from_pdf(pdf_path, **kwargs):
     )
 
     cells = []
-    for i in info:
+    for inf in info:
         cells.append(
             {
-                "title": i["title"],
-                "size": float(i["fields"]["font.size"]),
-                "color": i["fields"]["font.color"],
-                "bold": True if i["fields"]["font.bold"] == "true" else False,
-                "left": round(float(i["fields"]["bbox.left"])),
-                "right": round(float(i["fields"]["bbox.right"])),
-                "top": round(float(i["fields"]["bbox.top"])),
+                "title": inf["title"],
+                "size": float(inf["fields"]["font.size"]),
+                "color": inf["fields"]["font.color"],
+                "bold": True if inf["fields"]["font.bold"] == "true" else False,
+                "left": round(float(inf["fields"]["bbox.left"])),
+                "right": round(float(inf["fields"]["bbox.right"])),
+                "top": round(float(inf["fields"]["bbox.top"])),
             }
         )
     cells.sort(key=lambda x: x["top"])
