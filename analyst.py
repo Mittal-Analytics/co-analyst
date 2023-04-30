@@ -1,9 +1,11 @@
-import os
-import fitz
-import re
-import metadata as md
-import grading as gr
 import json
+import os
+import re
+
+import fitz
+
+import grading as gr
+import metadata as md
 
 
 def _find_page_range(pdf_path, statement_name):
