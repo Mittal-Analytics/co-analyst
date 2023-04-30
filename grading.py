@@ -2,14 +2,16 @@ import re
 
 
 def _find_property_values(table, property):
+    tmp = []
     res = {}
     for row in table:
+        tmp.append(row[0][property])
         if row[0][property] in res:
             res[row[0][property]] += 1
         else:
             res[row[0][property]] = 1
     res = list(res.items())
-    res.sort(key=lambda x: x[1], reverse=True)
+    res.sort(key=lambda x: (x[1], tmp.index(x[0])), reverse=True)
     return res
 
 
