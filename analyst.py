@@ -72,7 +72,7 @@ def _find_unit(pdf_path, start):
                 return units[0]
     for unit in possible_numerical_units:
         if unit in text:
-            return possible_units[possible_numerical_units.index(unit) % 5][0]
+            return possible_units[possible_numerical_units.index(unit) % 6][0]
 
 
 def _find_separation_point(table):
