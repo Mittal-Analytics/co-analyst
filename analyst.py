@@ -58,6 +58,12 @@ def _find_unit(pdf_path, start):
         "000000s",
         "00000s",
         "000s",
+        "'000000000000",
+        "'000000000",
+        "'0000000",
+        "'000000",
+        "'00000",
+        "'000",
     ]
     doc = fitz.open(pdf_path)
     page = doc[start - 1]
@@ -68,7 +74,7 @@ def _find_unit(pdf_path, start):
                 return units[0]
     for unit in possible_numerical_units:
         if unit in text:
-            return possible_units[possible_numerical_units.index(unit)][0]
+            return possible_units[possible_numerical_units.index(unit) % 5][0]
 
 
 def _find_separation_point(table):
