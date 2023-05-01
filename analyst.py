@@ -19,7 +19,7 @@ def _find_page_range(pdf_path, statement_name):
             info = md.extract(metadata, ["font.size", "font.bold"])
             cells = []
             for inf in info:
-                if len(inf["title"].strip()) >= 2:
+                if len(inf["title"].strip()) > 1:
                     cells.append(
                         {
                             "title": inf["title"],
@@ -27,7 +27,6 @@ def _find_page_range(pdf_path, statement_name):
                         }
                     )
             sizes = {}
-            statement_cell = None
             for cell in cells:
                 if cell["size"] in sizes:
                     sizes[cell["size"]] += 1
@@ -35,10 +34,9 @@ def _find_page_range(pdf_path, statement_name):
                     sizes[cell["size"]] = 1
             for cell in cells:
                 if statement_name in cell["title"].lower().strip():
-                    statement_cell = cell
+                    if sizes[cell["size"]] <= 2:
+                        page_ranges.append((i + 1, i + 1))
                     break
-            if sizes[statement_cell["size"]] <= 2:
-                page_ranges.append((i + 1, i + 1))
     return page_ranges[0]
 
 
