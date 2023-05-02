@@ -89,7 +89,7 @@ def _find_separation_point(table):
             left_count[-1][1] += 1
     left_count.sort(key=lambda x: x[1], reverse=True)
     if left_count[0][1] > 25:
-        return left_count[0][0]
+        return left_count[0][0] - 10
     return None
 
 
@@ -119,16 +119,50 @@ def _separate_if_two(table):
 
 def _find_column_positions(table):
     column_positions = []
+
     # Assuming there will always be 4 columns.
     columns = [[], [], [], []]
+
+    first_row_index = None
+    last_row_index = None
+    skipped_rows = []
     for row in table:
-        if len(row) >= 4:
-            while len(row) != 4:
-                row[0]["title"] += row[1]["title"]
-                row[0]["right"] = row[1]["right"]
-                row.pop(1)
+        if len(row) == 4:
+            if first_row_index == None:
+                first_row_index = table.index(row)
+            last_row_index = table.index(row)
             for cell in row:
+                if cell["right"] == 1097:
+                    print(cell["title"])
                 columns[row.index(cell)].append([cell["left"], cell["right"]])
+        else:
+            skipped_rows.append(row)
+
+    for row in skipped_rows:
+        if table.index(row) < first_row_index:
+            continue
+        elif table.index(row) > last_row_index:
+            break
+
+        while len(row) > 4:
+            row[0]["title"] += row[1]["title"]
+            row[0]["right"] = row[1]["right"]
+            row.pop(1)
+
+        for cell in row:
+            closest = None
+            closest_diff = 10000
+            for column in columns:
+                if len(column) and abs(cell["left"] - column[0][0]) < closest_diff:
+                    closest = column
+                    closest_diff = abs(cell["left"] - column[0][0])
+            if (
+                closest
+                and closest_diff <= 100
+                and not cell["right"] > max(closest, key=lambda x: x[1])[1]
+            ):
+                closest.append([cell["left"], cell["right"]])
+
     for column in columns[::-1]:
         column.sort(key=lambda x: x[0])
         left_count = [[column[0][0], 1]]
@@ -140,14 +174,17 @@ def _find_column_positions(table):
         left_count.sort(key=lambda x: x[1], reverse=True)
         left = left_count[0][0]
         column.sort(key=lambda x: x[1])
-        right = column[-1][1]
+        right = column[0][1]
         if len(column_positions):
-            for cell in column:
+            for cell in column[::-1]:
                 if cell[1] > right and cell[1] < column_positions[-1]["left"]:
                     right = cell[1]
+                    break
             for cell in columns[columns.index(column) + 1]:
                 if cell[0] < column_positions[-1]["left"] and cell[0] > right:
                     column_positions[-1]["left"] = cell[0]
+        else:
+            right = column[-1][1]
         column_positions.append({"left": left, "right": right})
     column_positions = column_positions[::-1]
     return column_positions
@@ -426,13 +463,13 @@ def extract_data_from_pdf(pdf_path, **kwargs):
 
         statement_name = _find_statement_name(table)
 
-        start, end = _find_table_range(table, column_positions)
-        table = table[start : end + 1]
-
         max_right = column_positions[1]["left"] - (
             column_positions[2]["left"] - column_positions[1]["left"] * 3 / 2
         )
         _sanitize_line_break(table, _find_max_length(table), max_right)
+
+        start, end = _find_table_range(table, column_positions)
+        table = table[start : end + 1]
 
         first_row = _find_first_row(table)
         column_names = _find_column_names(table[0:first_row])
