@@ -123,44 +123,26 @@ def _find_column_positions(table):
     # Assuming there will always be 4 columns.
     columns = [[], [], [], []]
 
-    first_row_index = None
-    last_row_index = None
     skipped_rows = []
     for row in table:
         if len(row) == 4:
-            if first_row_index == None:
-                first_row_index = table.index(row)
-            last_row_index = table.index(row)
             for cell in row:
-                if cell["right"] == 1097:
-                    print(cell["title"])
                 columns[row.index(cell)].append([cell["left"], cell["right"]])
-        else:
+        elif len(row) < 4:
             skipped_rows.append(row)
 
     for row in skipped_rows:
-        if table.index(row) < first_row_index:
-            continue
-        elif table.index(row) > last_row_index:
-            break
-
-        while len(row) > 4:
-            row[0]["title"] += row[1]["title"]
-            row[0]["right"] = row[1]["right"]
-            row.pop(1)
-
         for cell in row:
             closest = None
             closest_diff = 10000
             for column in columns:
-                if len(column) and abs(cell["left"] - column[0][0]) < closest_diff:
+                curr_diff = abs(cell["left"] - column[0][0]) + abs(
+                    cell["right"] - column[0][1]
+                )
+                if len(column) and curr_diff < closest_diff:
                     closest = column
-                    closest_diff = abs(cell["left"] - column[0][0])
-            if (
-                closest
-                and closest_diff <= 100
-                and not cell["right"] > max(closest, key=lambda x: x[1])[1]
-            ):
+                    closest_diff = curr_diff
+            if closest_diff <= 100:
                 closest.append([cell["left"], cell["right"]])
 
     for column in columns[::-1]:
@@ -185,7 +167,7 @@ def _find_column_positions(table):
                     column_positions[-1]["left"] = cell[0]
         else:
             right = column[-1][1]
-        column_positions.append({"left": left, "right": right})
+        column_positions.append({"left": left - 10, "right": right})
     column_positions = column_positions[::-1]
     return column_positions
 
@@ -262,11 +244,21 @@ def _is_first_row_match(row, column_positions):
     row_length = len(row)
     if row_length == 3:
         for i in range(3):
-            if abs(column_positions[i + 1]["left"] - row[i]["left"]) > 50:
+            if not (
+                column_positions[i + 1]["left"]
+                <= row[i]["left"]
+                <= row[i]["right"]
+                <= column_positions[i + 1]["right"]
+            ):
                 return False
     elif row_length == 4:
         for i in range(4):
-            if abs(column_positions[i]["left"] - row[i]["left"]) > 50:
+            if not (
+                column_positions[i]["left"]
+                <= row[i]["left"]
+                <= row[i]["right"]
+                <= column_positions[i]["right"]
+            ):
                 return False
     else:
         return False
