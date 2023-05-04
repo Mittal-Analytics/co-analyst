@@ -2,119 +2,11 @@ import json
 import os
 import re
 
-import fitz
-
+import explorer
 import grading as gr
 import metadata as md
-
-
-def _find_page_range(pdf_path, statement_name):
-    page_ranges = []
-    doc = fitz.open(pdf_path)
-    for i in range(len(doc)):
-        page = doc[i]
-        text = page.get_text().lower()
-        if statement_name in text:
-            metadata = md.generate_range(pdf_path, i + 1, i + 1)
-            info = md.extract(metadata, ["font.size", "font.bold"])
-            cells = []
-            for inf in info:
-                if len(inf["title"].strip()) > 1:
-                    cells.append(
-                        {
-                            "title": inf["title"],
-                            "size": float(inf["fields"]["font.size"]),
-                        }
-                    )
-            sizes = {}
-            for cell in cells:
-                if cell["size"] in sizes:
-                    sizes[cell["size"]] += 1
-                else:
-                    sizes[cell["size"]] = 1
-            for cell in cells:
-                if statement_name in cell["title"].lower().strip():
-                    if sizes[cell["size"]] <= 2:
-                        page_ranges.append((i + 1, i + 1))
-                    break
-    return page_ranges[0]
-
-
-def _find_unit(pdf_path, start):
-    possible_units = [
-        ["trillions", "trillion"],
-        ["billions", "billion"],
-        ["crores", "crore"],
-        ["millions", "million"],
-        ["lakhs", "lakh"],
-        ["thousands", "thousand"],
-    ]
-    possible_numerical_units = [
-        "000000000000s",
-        "000000000s",
-        "0000000s",
-        "000000s",
-        "00000s",
-        "000s",
-        "'000000000000",
-        "'000000000",
-        "'0000000",
-        "'000000",
-        "'00000",
-        "'000",
-    ]
-    doc = fitz.open(pdf_path)
-    page = doc[start - 1]
-    text = page.get_text().lower()
-    for units in possible_units:
-        for unit in units:
-            if unit in text:
-                return units[0]
-    for unit in possible_numerical_units:
-        if unit in text:
-            return possible_units[possible_numerical_units.index(unit) % 6][0]
-
-
-def _find_separation_point(table):
-    lefts = []
-    for row in table:
-        for cell in row[1:]:
-            lefts.append(cell["left"])
-    lefts.sort()
-    left_count = [[lefts[0], 1]]
-    for left in lefts[1:]:
-        if left != left_count[-1][0]:
-            left_count.append([left, 1])
-        else:
-            left_count[-1][1] += 1
-    left_count.sort(key=lambda x: x[1], reverse=True)
-    if left_count[0][1] > 25:
-        return left_count[0][0] - 10
-    return None
-
-
-def _separate_cells(row, separation_point):
-    separated_cells = [[], []]
-    for cell in row:
-        if cell["left"] < separation_point:
-            separated_cells[0].append(cell)
-        else:
-            separated_cells[1].append(cell)
-    return separated_cells
-
-
-def _separate_if_two(table):
-    separation_point = _find_separation_point(table)
-    if separation_point == None:
-        return [table]
-    separated_tables = [[], []]
-    for row in table:
-        separated_cells = _separate_cells(row, separation_point)
-        if len(separated_cells[0]) > 0:
-            separated_tables[0].append(separated_cells[0])
-        if len(separated_cells[1]) > 0:
-            separated_tables[1].append(separated_cells[1])
-    return separated_tables
+import separator
+import unifier
 
 
 def _find_column_positions(table):
@@ -172,29 +64,9 @@ def _find_column_positions(table):
     return column_positions
 
 
-def _unite_separated_cells(table, column_positions):
-    for row in table:
-        row_length = len(row)
-        if row_length > 1:
-            i = 0
-            while i < row_length - 1 and i < 3:
-                if row[i]["title"].strip() == "":
-                    row.pop(i)
-                    row_length -= 1
-                elif row[i + 1]["left"] < column_positions[i + 1]["left"]:
-                    row[i]["title"] += " " + row[i + 1]["title"]
-                    row[i]["right"] = row[i + 1]["right"]
-                    row.pop(i + 1)
-                    row_length -= 1
-                else:
-                    i += 1
-    return table
-
-
 def _find_statement_name(table):
     possible_statements = [
         "profit and loss",
-        "cash flow",
         "balance sheet",
     ]
     for row in table:
@@ -218,26 +90,6 @@ def _find_max_length(table):
             if len(cell["title"]) > max_length:
                 max_length = len(cell["title"])
     return max_length
-
-
-def _merge_rows(table, row1, row2):
-    row1[0]["title"] += " " + row2[0]["title"]
-    if len(row1) == 1:
-        for cell in row2[1:]:
-            row1.append(cell)
-    table.remove(row2)
-
-
-def _sanitize_line_break(table, max_length, max_right, index=0):
-    if index == len(table) - 1:
-        return table
-    if (
-        table[index][0]["right"] >= max_right
-        and len(table[index][0]["title"]) >= max_length - 5
-    ):
-        if len(table[index]) == 1 or len(table[index + 1]) == 1:
-            _merge_rows(table, table[index], table[index + 1])
-    return _sanitize_line_break(table, max_length, max_right, index + 1)
 
 
 def _is_first_row_match(row, column_positions):
@@ -393,18 +245,18 @@ def _extract_data_from_table(statement_name, table, grading, column_names, unit)
 
 def extract_data_from_pdf(pdf_path, **kwargs):
     if not os.path.exists(pdf_path):
-        raise FileNotFoundError(f"File not found at {pdf_path}")
+        raise FileNotFoundError(f"File not found at {pdf_path}.")
 
     try:
         start, end = kwargs["start"], kwargs["end"]
     except KeyError:
         try:
             statement_name = kwargs["statement_name"].lower()
-            start, end = _find_page_range(pdf_path, statement_name)
+            start, end = explorer.find_page_range(pdf_path, statement_name)
         except KeyError:
-            raise KeyError("Either start and end or statement_name must be provided")
+            raise KeyError("Either start and end or statement_name must be provided.")
 
-    unit = _find_unit(pdf_path, start)
+    unit = explorer.find_unit(pdf_path, start)
     metadata = md.generate_range(pdf_path, start, end)
     info = md.extract(
         metadata,
@@ -426,28 +278,27 @@ def extract_data_from_pdf(pdf_path, **kwargs):
                 "size": float(inf["fields"]["font.size"]),
                 "color": inf["fields"]["font.color"],
                 "bold": True if inf["fields"]["font.bold"] == "true" else False,
-                "left": round(float(inf["fields"]["bbox.left"])),
-                "right": round(float(inf["fields"]["bbox.right"])),
-                "top": round(float(inf["fields"]["bbox.top"])),
+                "left": float(inf["fields"]["bbox.left"]),
+                "right": float(inf["fields"]["bbox.right"]),
+                "top": float(inf["fields"]["bbox.top"]),
             }
         )
-    cells.sort(key=lambda x: x["top"])
+    cells.sort(key=lambda cell: cell["top"])
 
-    tables = []
+    pages = []
     row = []
     for cell in cells:
-        if len(row) == 0 or cell["top"] - row[0]["top"] < 5:
+        if len(row) == 0 or row[0]["top"] - cell["top"] < 1:
             row.append(cell)
         else:
-            tables.append(sorted(row, key=lambda x: x["left"]))
+            pages.append(sorted(row, key=lambda x: x["left"]))
             row = [cell]
-
-    tables = _separate_if_two(tables)
+    pages = separator.separate_if_two(pages)
 
     response = []
-    for table in tables:
+    for table in pages:
         column_positions = _find_column_positions(table)
-        table = _unite_separated_cells(table, column_positions)
+        table = unifier.unite_separated_cells(table, column_positions)
 
         for row in table:
             for cell in row:
@@ -458,7 +309,7 @@ def extract_data_from_pdf(pdf_path, **kwargs):
         max_right = column_positions[1]["left"] - (
             column_positions[2]["left"] - column_positions[1]["left"] * 3 / 2
         )
-        _sanitize_line_break(table, _find_max_length(table), max_right)
+        unifier.sanitize_line_break(table, _find_max_length(table), max_right)
 
         start, end = _find_table_range(table, column_positions)
         table = table[start : end + 1]

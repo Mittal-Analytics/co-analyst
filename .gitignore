@@ -1,3 +1,9 @@
+# Dev
 .venv
 .env
+
+# Temporary
 tmp
+
+# Miscellaneous
+.DS_Store
