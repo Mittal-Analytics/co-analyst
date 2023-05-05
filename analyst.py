@@ -1,30 +1,12 @@
 import json
 import os
-import re
 
 import explorer
 import grading as gr
 import metadata as md
 import separator
 import unifier
-
-
-def _sanitize(cell):
-    # Remove all commas for numerical values otherwise all dots.
-    if re.match(r"^\d{1,3}(,\d{3})*(\.\d+)?|\d+(\.\d+)?$", cell["title"]):
-        return cell["title"].replace(",", "").strip()
-    return cell["title"].rstrip(".").strip()
-
-
-def _remove_list_marker(title):
-    pattern = r"^[\dA-Za-z]+\.\s|\([^\)]*\)\s|\s*[-*•]+(?=\s)"
-    return re.sub(pattern, "", title).strip()
-
-
-def _n(title):
-    if title[0] == "(" and title[-1] == ")":
-        return f"-{title[1:-1]}"
-    return title
+import utils
 
 
 def _extract_data_from_table(statement_name, table, grading, column_names, unit):
@@ -35,12 +17,12 @@ def _extract_data_from_table(statement_name, table, grading, column_names, unit)
                 len(stack) > 1
                 and grading[row[0]["title"]] >= grading[stack[-1]["title"]]
             ):
-                stack[-1]["title"] = _remove_list_marker(stack[-1]["title"])
+                stack[-1]["title"] = utils.remove_list_marker(stack[-1]["title"])
                 stack[-2]["data"].append(stack[-1])
                 stack.pop()
         except KeyError:
             if len(row) == 2:
-                stack[-1]["title"] = _remove_list_marker(stack[-1]["title"])
+                stack[-1]["title"] = utils.remove_list_marker(stack[-1]["title"])
                 stack[-2]["data"].append(stack[-1])
                 stack.pop()
         stack.append({"title": row[0]["title"], "data": []})
@@ -48,28 +30,40 @@ def _extract_data_from_table(statement_name, table, grading, column_names, unit)
             stack[-1]["title"] = stack[-2]["title"]
             stack[-1]["data"].append(
                 {
-                    column_names[1]: _n(_remove_list_marker(row[0]["title"])),
-                    column_names[2]: _n(_remove_list_marker(row[1]["title"])),
+                    column_names[1]: utils.negate(
+                        utils.remove_list_marker(row[0]["title"])
+                    ),
+                    column_names[2]: utils.negate(
+                        utils.remove_list_marker(row[1]["title"])
+                    ),
                 }
             )
         elif len(row) == 3:
             stack[-1]["data"].append(
                 {
-                    column_names[1]: _n(_remove_list_marker(row[1]["title"])),
-                    column_names[2]: _n(_remove_list_marker(row[2]["title"])),
+                    column_names[1]: utils.negate(
+                        utils.remove_list_marker(row[1]["title"])
+                    ),
+                    column_names[2]: utils.negate(
+                        utils.remove_list_marker(row[2]["title"])
+                    ),
                 }
             )
         elif len(row) == 4:
             stack[-1]["data"].append(
                 {
-                    column_names[0]: _remove_list_marker(row[1]["title"]),
-                    column_names[1]: _n(_remove_list_marker(row[2]["title"])),
-                    column_names[2]: _n(_remove_list_marker(row[3]["title"])),
+                    column_names[0]: utils.remove_list_marker(row[1]["title"]),
+                    column_names[1]: utils.negate(
+                        utils.remove_list_marker(row[2]["title"])
+                    ),
+                    column_names[2]: utils.negate(
+                        utils.remove_list_marker(row[3]["title"])
+                    ),
                 }
             )
 
     while len(stack) > 1:
-        stack[-1]["title"] = _remove_list_marker(stack[-1]["title"])
+        stack[-1]["title"] = utils.remove_list_marker(stack[-1]["title"])
         stack[-2]["data"].append(stack[-1])
         stack.pop()
 
