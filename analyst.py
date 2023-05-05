@@ -2,7 +2,7 @@ import json
 import os
 
 import explorer
-import grading as gr
+import grader
 import metadata as md
 import separator
 import unifier
@@ -129,7 +129,7 @@ def extract_data_from_pdf(pdf_path, **kwargs):
 
         for row in table:
             for cell in row:
-                cell["title"] = _sanitize(cell)
+                cell["title"] = utils.sanitize(cell)
 
         statement_name = explorer.find_statement_name(table)
 
@@ -147,7 +147,7 @@ def extract_data_from_pdf(pdf_path, **kwargs):
         column_names = explorer.find_column_names(table[0:first_row])
         table = table[first_row:]
 
-        grading = gr.make_grading(table)
+        grading = grader.make_grading(table)
         data = _extract_data_from_table(
             statement_name, table, grading, column_names, unit
         )
