@@ -139,10 +139,12 @@ def extract_data_from_pdf(pdf_path, **kwargs):
 
         statement_name = explorer.find_statement_name(table)
 
-        max_right = column_positions[1]["left"] - (
+        max_cell_right = column_positions[1]["left"] - (
             column_positions[2]["left"] - column_positions[1]["left"] * 3 / 2
         )
-        unifier.sanitize_line_break(table, explorer.find_max_length(table), max_right)
+        unifier.unite_separated_rows(
+            table, explorer.find_max_cell_length(table), max_cell_right
+        )
 
         start, end = explorer.find_table_range(table, column_positions)
         table = table[start : end + 1]

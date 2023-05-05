@@ -25,7 +25,7 @@ def _merge_rows(table, row1, row2):
     table.remove(row2)
 
 
-def sanitize_line_break(table, max_length, max_right, index=0):
+def unite_separated_rows(table, max_length, max_right, index=0):
     if index == len(table) - 1:
         return table
     if (
@@ -34,4 +34,4 @@ def sanitize_line_break(table, max_length, max_right, index=0):
     ):
         if len(table[index]) == 1 or len(table[index + 1]) == 1:
             _merge_rows(table, table[index], table[index + 1])
-    return sanitize_line_break(table, max_length, max_right, index + 1)
+    return unite_separated_rows(table, max_length, max_right, index + 1)

@@ -1,3 +1,5 @@
+import re
+
 import fitz
 
 import metadata as md
@@ -132,7 +134,7 @@ def find_statement_name(table):
                     return statement
 
 
-def find_max_length(table):
+def find_max_cell_length(table):
     max_length = 0
     for row in table:
         for cell in row:
