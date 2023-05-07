@@ -123,25 +123,25 @@ def extract_data_from_pdf(pdf_path, **kwargs):
     pages = separator.separate_if_two(pages)
 
     response = []
-    for table in pages:
-        column_positions = explorer.find_column_positions(table)
-        table = unifier.unite_separated_cells(table, column_positions)
+    for page in pages:
+        column_positions = explorer.find_column_positions(page)
+        page = unifier.unite_separated_cells(page, column_positions)
 
-        for row in table:
+        for row in page:
             for cell in row:
                 cell["title"] = utils.sanitize(cell)
 
-        statement_name = explorer.find_statement_name(table)
+        statement_name = explorer.find_statement_name(page)
 
         max_cell_right = column_positions[1]["left"] - (
             column_positions[2]["left"] - column_positions[1]["left"] * 3 / 2
         )
         unifier.unite_separated_rows(
-            table, explorer.find_max_cell_length(table), max_cell_right
+            page, explorer.find_max_cell_length(page), max_cell_right
         )
 
-        start, end = explorer.find_table_range(table, column_positions)
-        table = table[start : end + 1]
+        start, end = explorer.find_table_range(page, column_positions)
+        table = page[start : end + 1]
 
         first_row = explorer.find_first_row(table)
         column_names = explorer.find_column_names(table[0:first_row])
