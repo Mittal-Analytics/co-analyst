@@ -5,6 +5,7 @@ import explorer
 import grader
 import metadata as md
 import separator
+import tablex
 import unifier
 import utils
 
@@ -112,36 +113,37 @@ def extract_data_from_pdf(pdf_path, **kwargs):
         )
     cells.sort(key=lambda cell: cell["top"])
 
-    pages = []
+    page = []
     row = []
     for cell in cells:
-        if len(row) == 0 or row[0]["top"] - cell["top"] < 1:
+        if len(row) == 0 or cell["top"] - row[0]["top"] < 1:
             row.append(cell)
         else:
-            pages.append(sorted(row, key=lambda x: x["left"]))
+            page.append(sorted(row, key=lambda x: x["left"]))
             row = [cell]
-    pages = separator.separate_if_two(pages)
+    pages = separator.separate_if_two(page)
 
     response = []
     for page in pages:
-        column_positions = explorer.find_column_positions(page)
-        page = unifier.unite_separated_cells(page, column_positions)
+        table = tablex.extract(page)
+        column_positions = explorer.find_column_positions(table)
+        table = unifier.unite_separated_cells(table, column_positions)
 
-        for row in page:
+        for row in table:
             for cell in row:
                 cell["title"] = utils.sanitize(cell)
 
-        statement_name = explorer.find_statement_name(page)
+        statement_name = explorer.find_statement_name(table)
 
         max_cell_right = column_positions[1]["left"] - (
             column_positions[2]["left"] - column_positions[1]["left"] * 3 / 2
         )
         unifier.unite_separated_rows(
-            page, explorer.find_max_cell_length(page), max_cell_right
+            table, explorer.find_max_cell_length(table), max_cell_right
         )
 
-        start, end = explorer.find_table_range(page, column_positions)
-        table = page[start : end + 1]
+        start, end = explorer.find_table_range(table, column_positions)
+        table = table[start : end + 1]
 
         first_row = explorer.find_first_row(table)
         column_names = explorer.find_column_names(table[0:first_row])

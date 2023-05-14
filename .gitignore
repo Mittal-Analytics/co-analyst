@@ -3,7 +3,7 @@
 .env
 
 # Temporary
-tmp
+*tmp*
 
 # Miscellaneous
 .DS_Store
