@@ -16,7 +16,7 @@ def _overlap(cell1, cell2):
     return False
 
 
-# Finds a match (format) for a provided cell against every other cell in a row.
+# Find a match (format) for a provided cell against every other cell in a row.
 def _find_match(provided_cell, row):
     for cell in row:
         if _overlap(provided_cell, cell):
@@ -24,7 +24,7 @@ def _find_match(provided_cell, row):
     return None
 
 
-# Calculates the score of a row based on how similar it is (format) to other rows.
+# Calculate the score of a row based on how similar it is (format) to other rows.
 def _calculate_score(provided_row, page):
     score = 0
     for row in page:
@@ -58,7 +58,7 @@ def _clean(page):
     for i in range(len(scores)):
         # ith score is for the ith row.
         if scores[i] < average_score:
-            if i < len(scores) / 2:
+            if i < (len(scores) / 2):
                 for j in range(i + 1):
                     page[j] = None
             else:
@@ -69,7 +69,7 @@ def _clean(page):
         page.remove(None)
 
 
-# "page" will have structure of page[row[cell{info}]]
+# "page" will have a structure of page[row[cell{info}]].
 def extract(page):
     _clean(page)
     # page now is purely table.

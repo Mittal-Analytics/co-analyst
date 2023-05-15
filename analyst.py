@@ -116,11 +116,13 @@ def extract_data_from_pdf(pdf_path, **kwargs):
     page = []
     row = []
     for cell in cells:
+        cell["title"] = utils.sanitized(cell["title"])
         if len(row) == 0 or cell["top"] - row[0]["top"] < 1:
             row.append(cell)
         else:
             page.append(sorted(row, key=lambda x: x["left"]))
             row = [cell]
+    page.append(sorted(row, key=lambda x: x["left"]))
     pages = separator.separate_if_two(page)
 
     response = []
@@ -128,10 +130,6 @@ def extract_data_from_pdf(pdf_path, **kwargs):
         table = tablex.extract(page)
         column_positions = explorer.find_column_positions(table)
         table = unifier.unite_separated_cells(table, column_positions)
-
-        for row in table:
-            for cell in row:
-                cell["title"] = utils.sanitize(cell)
 
         statement_name = explorer.find_statement_name(table)
 
@@ -154,6 +152,8 @@ def extract_data_from_pdf(pdf_path, **kwargs):
             statement_name, table, grading, column_names, unit
         )
 
+        # data["title"] will be None when table on the current page
+        # is continuation of the table of the previous page.
         if data["title"] == None:
             response[-1]["data"].append(data["data"][0])
         else:
