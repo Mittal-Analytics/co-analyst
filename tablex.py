@@ -1,5 +1,3 @@
-# TODO: Check if this really is the right way.
-# 1aaaa
 # Determine if there is an overlap between two cells.
 def _overlap(cell1, cell2):
     left1 = cell1["left"]
@@ -18,7 +16,6 @@ def _overlap(cell1, cell2):
     return False
 
 
-# 1aaa
 # Finds a match (format) for a provided cell against every other cell in a row.
 def _find_match(provided_cell, row):
     for cell in row:
@@ -27,7 +24,6 @@ def _find_match(provided_cell, row):
     return None
 
 
-# 1aa
 # Calculates the score of a row based on how similar it is (format) to other rows.
 def _calculate_score(provided_row, page):
     score = 0
@@ -47,7 +43,6 @@ def _calculate_score(provided_row, page):
     return score
 
 
-# 1a
 # Remove all rows that are not part of the table.
 def _clean(page):
     scores = []
@@ -57,26 +52,25 @@ def _clean(page):
 
     average_score = sum(scores) / len(scores)
 
-    # TODO: Remove the line below.
-    # print(scores, average_score)
-
-    # Remove all rows that did not score higher than the average score.
+    # Remove all rows till the row that has a score less than average.
+    # If the row is in the first half, remove all rows before it.
+    # If the row is in the second half, remove all rows after it.
     for i in range(len(scores)):
         # ith score is for the ith row.
         if scores[i] < average_score:
-            # TODO: Remove the line below.
-            # print("Removing: ", [cell["title"] for cell in page[i]])
-            page[i] = None
+            if i < len(scores) / 2:
+                for j in range(i + 1):
+                    page[j] = None
+            else:
+                for j in range(i, len(scores)):
+                    page[j] = None
+                break
     while None in page:
         page.remove(None)
 
 
-# 1
 # "page" will have structure of page[row[cell{info}]]
 def extract(page):
     _clean(page)
-    # TODO: Remove the loop below.
-    # for row in page:
-    #     print([cell["title"] for cell in row])
     # page now is purely table.
     return page
