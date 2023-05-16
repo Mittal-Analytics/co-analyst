@@ -75,7 +75,7 @@ def _clean(page):
 
 
 # Extract tables from pdf page(s).
-def extract(pdf_path, start=0, end=0):
+def extract(pdf_path, start=1, end=1):
     metadata = md.generate_range(pdf_path, start, end)
     info = md.extract(
         metadata,
