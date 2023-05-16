@@ -21,6 +21,7 @@ def generate_complete(pdf_path):
 
 
 # Generate metadata for a range of pages.
+# index for "start" and "end" starts from 1 (not 0).
 def generate_range(pdf_path, start, end):
     _tmp_check()
     metadata = ""

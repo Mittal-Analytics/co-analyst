@@ -1,7 +1,7 @@
-def _find_separation_point(table):
+def _find_separation_point(page):
     lefts = []
-    for row in table:
-        for cell in row[1:]:
+    for row in page:
+        for cell in row:
             lefts.append(cell["left"])
     lefts.sort()
     left_count = [[lefts[0], 1]]
@@ -11,30 +11,32 @@ def _find_separation_point(table):
         else:
             left_count[-1][1] += 1
     left_count.sort(key=lambda x: x[1], reverse=True)
+    # TODO: 25 is an approximation. Needs to be eradicated.
     if left_count[0][1] > 25:
-        return left_count[0][0] - 10
+        # -1 to detach the point from the leftmost boundary of the second page.
+        return left_count[0][0] - 1
     return None
 
 
-def _separate_cells(row, separation_point):
-    separated_cells = [[], []]
+def _separate_rows(row, separation_point):
+    separated_rows = [[], []]
     for cell in row:
         if cell["left"] < separation_point:
-            separated_cells[0].append(cell)
+            separated_rows[0].append(cell)
         else:
-            separated_cells[1].append(cell)
-    return separated_cells
+            separated_rows[1].append(cell)
+    return separated_rows
 
 
-def separate_if_two(table):
-    separation_point = _find_separation_point(table)
+def separate_if_two(page):
+    separation_point = _find_separation_point(page)
     if separation_point == None:
-        return [table]
-    separated_tables = [[], []]
-    for row in table:
-        separated_cells = _separate_cells(row, separation_point)
-        if len(separated_cells[0]) > 0:
-            separated_tables[0].append(separated_cells[0])
-        if len(separated_cells[1]) > 0:
-            separated_tables[1].append(separated_cells[1])
-    return separated_tables
+        return [page]
+    separated_pages = [[], []]
+    for row in page:
+        separated_rows = _separate_rows(row, separation_point)
+        if len(separated_rows[0]):
+            separated_pages[0].append(separated_rows[0])
+        if len(separated_rows[1]):
+            separated_pages[1].append(separated_rows[1])
+    return separated_pages
