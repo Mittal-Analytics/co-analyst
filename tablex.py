@@ -1,3 +1,8 @@
+import metadata as md
+import separator
+import utils
+
+
 # Determine if there is an overlap between two cells.
 def _overlap(cell1, cell2):
     left1 = cell1["left"]
@@ -69,8 +74,50 @@ def _clean(page):
         page.remove(None)
 
 
-# "page" will have a structure of page[row[cell{info}]].
-def extract(page):
-    _clean(page)
-    # page now is purely table.
-    return page
+# Extract tables from pdf page(s).
+def extract(pdf_path, start=0, end=0):
+    metadata = md.generate_range(pdf_path, start, end)
+    info = md.extract(
+        metadata,
+        [
+            "font.size",
+            "font.color",
+            "font.bold",
+            "bbox.left",
+            "bbox.right",
+            "bbox.top",
+        ],
+    )
+
+    cells = []
+    for inf in info:
+        cells.append(
+            {
+                "title": inf["title"],
+                "size": float(inf["fields"]["font.size"]),
+                "color": inf["fields"]["font.color"],
+                "bold": True if inf["fields"]["font.bold"] == "true" else False,
+                "left": float(inf["fields"]["bbox.left"]),
+                "right": float(inf["fields"]["bbox.right"]),
+                "top": float(inf["fields"]["bbox.top"]),
+            }
+        )
+    cells.sort(key=lambda cell: cell["top"])
+
+    page = []
+    row = []
+    for cell in cells:
+        cell["title"] = utils.sanitized(cell["title"])
+        if len(row) == 0 or cell["top"] - row[0]["top"] < 1:
+            row.append(cell)
+        else:
+            page.append(sorted(row, key=lambda x: x["left"]))
+            row = [cell]
+    page.append(sorted(row, key=lambda x: x["left"]))
+
+    pages = separator.separate_if_two(page)
+
+    for page in pages:
+        _clean(page)
+        # page now is purely table.
+        yield page

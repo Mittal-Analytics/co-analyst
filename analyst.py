@@ -3,8 +3,6 @@ import os
 
 import explorer
 import grader
-import metadata as md
-import separator
 import tablex
 import unifier
 import utils
@@ -85,49 +83,10 @@ def extract_data_from_pdf(pdf_path, **kwargs):
             raise KeyError("Either start and end or statement_name must be provided.")
 
     unit = explorer.find_unit(pdf_path, start)
-    metadata = md.generate_range(pdf_path, start, end)
-    info = md.extract(
-        metadata,
-        [
-            "font.size",
-            "font.color",
-            "font.bold",
-            "bbox.left",
-            "bbox.right",
-            "bbox.top",
-        ],
-    )
-
-    cells = []
-    for inf in info:
-        cells.append(
-            {
-                "title": inf["title"],
-                "size": float(inf["fields"]["font.size"]),
-                "color": inf["fields"]["font.color"],
-                "bold": True if inf["fields"]["font.bold"] == "true" else False,
-                "left": float(inf["fields"]["bbox.left"]),
-                "right": float(inf["fields"]["bbox.right"]),
-                "top": float(inf["fields"]["bbox.top"]),
-            }
-        )
-    cells.sort(key=lambda cell: cell["top"])
-
-    page = []
-    row = []
-    for cell in cells:
-        cell["title"] = utils.sanitized(cell["title"])
-        if len(row) == 0 or cell["top"] - row[0]["top"] < 1:
-            row.append(cell)
-        else:
-            page.append(sorted(row, key=lambda x: x["left"]))
-            row = [cell]
-    page.append(sorted(row, key=lambda x: x["left"]))
-    pages = separator.separate_if_two(page)
+    tables = tablex.extract(pdf_path, start, end)
 
     response = []
-    for page in pages:
-        table = tablex.extract(page)
+    for table in tables:
         column_positions = explorer.find_column_positions(table)
         table = unifier.unite_separated_cells(table, column_positions)
 
