@@ -36,7 +36,7 @@ def _calculate_score(provided_row, page):
         matches = []
         for cell in provided_row:
             match = _find_match(cell, row)
-            if match == None:
+            if match is None:
                 continue
             if match in matches:
                 matches = []

@@ -113,7 +113,7 @@ def extract_data_from_pdf(pdf_path, **kwargs):
 
         # data["title"] will be None when table on the current page
         # is continuation of the table of the previous page.
-        if data["title"] == None:
+        if data["title"] is None:
             response[-1]["data"].append(data["data"][0])
         else:
             response.append(data)

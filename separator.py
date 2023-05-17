@@ -30,7 +30,7 @@ def _separate_rows(row, separation_point):
 
 def separate_if_two(page):
     separation_point = _find_separation_point(page)
-    if separation_point == None:
+    if separation_point is None:
         return [page]
     separated_pages = [[], []]
     for row in page:
