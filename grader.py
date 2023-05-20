@@ -1,6 +1,7 @@
 import re
 
 
+# Find all the different values of a property in the table.
 def _find_property_values(table, property):
     tmp = []
     res = {}
@@ -16,6 +17,8 @@ def _find_property_values(table, property):
 
 
 def _point_size(size, sizes):
+    # Negative points for having the most common size.
+    sizes.pop(0)
     for i in range(len(sizes)):
         if size == sizes[i][0]:
             return i + 50
@@ -23,6 +26,8 @@ def _point_size(size, sizes):
 
 
 def _point_color(color, colors):
+    # Negative points for the having the most common color.
+    colors.pop(0)
     for i in range(len(colors)):
         if color == colors[i][0]:
             return i + 100
@@ -62,9 +67,6 @@ def make_grading(table):
     grading = {}
     sizes = _find_property_values(table, "size")
     colors = _find_property_values(table, "color")
-    # We do not need the most common size and color.
-    sizes.pop(0)
-    colors.pop(0)
     for row in table:
         if re.match(r"^\d{1,3}(,\d{3})*(\.\d+)?|\d+(\.\d+)?$", row[0]["title"]):
             continue
