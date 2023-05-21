@@ -8,6 +8,11 @@ def sanitized(cell_title):
     return cell_title.rstrip(".").strip()
 
 
+def has_list_marker(title):
+    pattern = r"^[\dA-Za-z]+\.\s|\([^\)]*\)\s|\s*[-*•]+(?=\s)"
+    return re.match(pattern, title)
+
+
 def remove_list_marker(title):
     pattern = r"^[\dA-Za-z]+\.\s|\([^\)]*\)\s|\s*[-*•]+(?=\s)"
     return re.sub(pattern, "", title)

@@ -1,5 +1,7 @@
 import re
 
+import utils
+
 
 # Find all the different values of a property in the table.
 def _find_property_values(table, property):
@@ -53,8 +55,7 @@ def _point_has_no_number(title):
 
 
 def _point_has_no_list_marker(title):
-    pattern = r"^[\dA-Za-z]+\.\s|\([^\)]*\)\s|\s*[-*•]+\s*"
-    if re.match(pattern, title):
+    if utils.has_list_marker(title):
         return -5
     return 10
 
