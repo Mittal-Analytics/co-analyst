@@ -35,11 +35,6 @@ def _find_match(provided_cell, row):
     return None
 
 
-def _contain_only_list_marker(title):
-    # Max length of list marker is 6 ~ (viii).
-    return utils.has_list_marker(title) and len(title) <= 6
-
-
 # Calculate the score of a row based on how similar it is (format) to other rows.
 def _calculate_score(provided_row, page):
     score = 0
@@ -50,7 +45,7 @@ def _calculate_score(provided_row, page):
             match = _find_match(cell, row)
             if match is None:
                 continue
-            if match in matches and not _contain_only_list_marker(matches[match]):
+            if match in matches and not utils.contain_only_list_marker(matches[match]):
                 bad_match = True
                 break
             matches[match] = cell["title"]
@@ -67,11 +62,7 @@ def _remove_extra_rows(page):
         score = _calculate_score(row, page)
         scores.append(score)
 
-    average_score = sum(scores) / len(scores)
-
-    # TODO: Remove the lines below.
-    print("Scores:", scores)
-    print("Average score:", average_score)
+    average_score = sum(scores) / len(scores) - 1
 
     # Remove all rows till the row that has a score less than average.
     # If the row is in the first half, remove all rows before it.
@@ -136,6 +127,8 @@ def extract(pdf_path, start=1, end=1):
     for page in pages:
         for row in page:
             _clean_row(row)
+
         _remove_extra_rows(page)
+
         # page now is purely table.
         yield page
