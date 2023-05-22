@@ -4,7 +4,7 @@ import utils
 
 
 def _clean_row(row):
-    for cell in row:
+    for cell in row.copy():
         if cell["title"].strip() == "":
             row.remove(cell)
 
@@ -62,7 +62,8 @@ def _remove_extra_rows(page):
         score = _calculate_score(row, page)
         scores.append(score)
 
-    average_score = sum(scores) / len(scores) - 1
+    # TODO: 2 is an approximation. Needs to be eradicated.
+    average_score = (sum(scores) / len(scores)) - 2
 
     # Remove all rows till the row that has a score less than average.
     # If the row is in the first half, remove all rows before it.

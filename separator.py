@@ -2,8 +2,9 @@ def _find_separation_point(page):
     lefts = []
     for row in page:
         for cell in row:
-            lefts.append(cell["left"])
+            lefts.append(int(cell["left"]))
     lefts.sort()
+
     left_count = [[lefts[0], 1]]
     for left in lefts[1:]:
         if left != left_count[-1][0]:
@@ -11,11 +12,23 @@ def _find_separation_point(page):
         else:
             left_count[-1][1] += 1
     left_count.sort(key=lambda x: x[1], reverse=True)
+
+    # Exclude the left values for cells of the first column.
+    # TODO: 100 is an approximation. Needs to be eradicated.
+    while left_count[0][0] < 100:
+        left_count.pop(0)
+
+    separation_point = None
+
     # TODO: 25 is an approximation. Needs to be eradicated.
     if left_count[0][1] > 25:
-        # -1 to detach the point from the leftmost boundary of the second page.
-        return left_count[0][0] - 1
-    return None
+        separation_point = left_count[0][0]
+
+    if separation_point:
+        # -10 to detach the point from the leftmost boundary of the second page.
+        separation_point -= 1
+
+    return separation_point
 
 
 def _separate_rows(row, separation_point):
