@@ -3,12 +3,12 @@ import separator
 import utils
 
 
-def _cleaned_row(row):
-    cleaned_row = []
-    for cell in row:
+def _cleaned_row(provided_row):
+    row = []
+    for cell in provided_row:
         if not cell["title"].strip() == "":
-            cleaned_row.append(cell)
-    return cleaned_row
+            row.append(cell)
+    return row
 
 
 # Determine if there is an overlap between two cells.
