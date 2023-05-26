@@ -59,10 +59,7 @@ def _calculated_score(provided_row, page):
 
 # Remove all rows that are not part of the table.
 def _table_extracted_from_page(page):
-    scores = []
-    for row in page:
-        score = _calculated_score(row, page)
-        scores.append(score)
+    scores = [_calculated_score(row, page) for row in page]
 
     # TODO: 2 is an approximation. Needs to be eradicated.
     average_score = (sum(scores) / len(scores)) - 2
@@ -74,14 +71,14 @@ def _table_extracted_from_page(page):
         # ith score is for the ith row.
         if scores[i] < average_score:
             if i < (len(scores) / 2):
-                for j in range(i + 1):
-                    page[j] = None
+                # +1 to not include the row with score less than average.
+                start = i + 1
             else:
-                for j in range(i, len(scores)):
-                    page[j] = None
+                # No +1 to not include the row with score less than average.
+                end = i
                 break
-    while None in page:
-        page.remove(None)
+
+    return page[start:end]
 
 
 # Extract tables from pdf page(s).
