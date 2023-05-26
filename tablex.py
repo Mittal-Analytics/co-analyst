@@ -57,8 +57,8 @@ def _calculated_score(provided_row, page):
     return score
 
 
-# Remove all rows that are not part of the table.
-def _table_extracted_from_page(page):
+# Narrow down the page to only the rows that are part of the table.
+def _narrowed_page(page):
     scores = [_calculated_score(row, page) for row in page]
 
     # TODO: 2 is an approximation. Needs to be eradicated.
@@ -79,6 +79,11 @@ def _table_extracted_from_page(page):
                 break
 
     return page[start:end]
+
+
+def _table_extracted_from_page(page):
+    table = _narrowed_page(page)
+    return table
 
 
 # Extract tables from pdf page(s).
