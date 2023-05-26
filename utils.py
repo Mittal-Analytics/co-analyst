@@ -23,7 +23,7 @@ def sanitized(cell_title):
     # Max length of list marker is 7 ~ (viii)[space].
     if contain_only_list_marker(cell_title):
         return cell_title.strip()
-    return cell_title.rstrip(".").strip()
+    return cell_title.strip().rstrip(".")
 
 
 # Put a "-" symbol in front of the value if it is in parentheses.

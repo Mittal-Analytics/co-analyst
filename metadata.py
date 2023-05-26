@@ -1,43 +1,44 @@
 import os
 import re
 
-METADATA_PATH = "./tmp/md.txt"
+TMP_FOLDER = "./tmp"
+METADATA_FILE = f"{TMP_FOLDER}/md.txt"
 
 
 # Create a temporary directory if it doesn't exist.
 def _tmp_check():
-    if not os.path.exists("./tmp"):
-        os.mkdir("./tmp")
+    if not os.path.exists(TMP_FOLDER):
+        os.mkdir(TMP_FOLDER)
 
 
 # Generate metadata for the whole pdf.
-def generate_complete(pdf_path):
+def complete_metadata(pdf_path):
     _tmp_check()
-    os.system(f"pdfxmeta {pdf_path} > {METADATA_PATH}")
-    with open(f"{METADATA_PATH}", "r") as f:
+    os.system(f"pdfxmeta {pdf_path} > {METADATA_FILE}")
+    with open(METADATA_FILE, "r") as f:
         metadata = f.read()
-    os.remove(f"{METADATA_PATH}")
+    os.remove(METADATA_FILE)
     return metadata
 
 
 # Generate metadata for a range of pages.
 # index for "start" and "end" starts from 1 (not 0).
-def generate_range(pdf_path, start, end):
+def page_range_metadata(pdf_path, start, end):
     _tmp_check()
     metadata = ""
     for i in range(start, end + 1):
-        os.system(f"pdfxmeta -p {i} {pdf_path} > {METADATA_PATH}")
-        with open(f"{METADATA_PATH}", "r") as f:
+        os.system(f"pdfxmeta -p {i} {pdf_path} > {METADATA_FILE}")
+        with open(METADATA_FILE, "r") as f:
             metadata += f.read()
-    os.remove(f"{METADATA_PATH}")
+    os.remove(METADATA_FILE)
     return metadata
 
 
 # Extract particular properties along with title from metadata.
-def extract(metadata, fields):
+def info_extracted_from_metadata(metadata, fields):
     matched_field_values = []
 
-    # "field" will have a structure of "a.b".
+    # "field" will always have a structure of "a.b".
     for field in fields:
         a, b = field.split(".")
         pattern = r"^\s*" + a + r"\." + b + r" = (.+)\n"

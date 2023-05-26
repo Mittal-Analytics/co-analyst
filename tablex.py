@@ -3,10 +3,12 @@ import separator
 import utils
 
 
-def _clean_row(row):
-    for cell in row.copy():
-        if cell["title"].strip() == "":
-            row.remove(cell)
+def _cleaned_row(row):
+    cleaned_row = []
+    for cell in row:
+        if not cell["title"].strip() == "":
+            cleaned_row.append(cell)
+    return cleaned_row
 
 
 # Determine if there is an overlap between two cells.
@@ -28,7 +30,7 @@ def _overlap(cell1, cell2):
 
 
 # Find a match (format) for a provided cell against every other cell in a row.
-def _find_match(provided_cell, row):
+def _found_match(provided_cell, row):
     for cell in row:
         if _overlap(provided_cell, cell):
             return row.index(cell)
@@ -36,13 +38,13 @@ def _find_match(provided_cell, row):
 
 
 # Calculate the score of a row based on how similar it is (format) to other rows.
-def _calculate_score(provided_row, page):
+def _calculated_score(provided_row, page):
     score = 0
     for row in page:
         matches = {}
         bad_match = False
         for cell in provided_row:
-            match = _find_match(cell, row)
+            match = _found_match(cell, row)
             if match is None:
                 continue
             if match in matches and not utils.contain_only_list_marker(matches[match]):
@@ -56,10 +58,10 @@ def _calculate_score(provided_row, page):
 
 
 # Remove all rows that are not part of the table.
-def _remove_extra_rows(page):
+def _table_extracted_from_page(page):
     scores = []
     for row in page:
-        score = _calculate_score(row, page)
+        score = _calculated_score(row, page)
         scores.append(score)
 
     # TODO: 2 is an approximation. Needs to be eradicated.
@@ -83,9 +85,9 @@ def _remove_extra_rows(page):
 
 
 # Extract tables from pdf page(s).
-def extract(pdf_path, start=1, end=1):
-    metadata = md.generate_range(pdf_path, start, end)
-    info = md.extract(
+def tables(pdf_path, start=1, end=1):
+    metadata = md.page_range_metadata(pdf_path, start, end)
+    info = md.info_extracted_from_metadata(
         metadata,
         [
             "font.size",
@@ -123,13 +125,13 @@ def extract(pdf_path, start=1, end=1):
             row = [cell]
     page.append(sorted(row, key=lambda x: x["left"]))
 
-    pages = separator.separate_if_two(page)
+    pages = separator.separated_pages_if_two(page)
 
+    tables = []
     for page in pages:
-        for row in page:
-            _clean_row(row)
+        for i in range(len(page)):
+            row = page[i]
+            page[i] = _cleaned_row(row)
 
-        _remove_extra_rows(page)
-
-        # page now is purely table.
-        yield page
+        tables.append(_table_extracted_from_page(page))
+    return tables
