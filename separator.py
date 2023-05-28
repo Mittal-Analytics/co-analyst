@@ -26,7 +26,7 @@ def _found_separation_point(page):
 
     if separation_point:
         # -10 to detach the point from the leftmost boundary of the second page.
-        separation_point -= 1
+        separation_point -= 10
 
     return separation_point
 
