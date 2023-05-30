@@ -129,11 +129,11 @@ def tables(pdf_path, start=1, end=1):
 
     pages = separator.separated_pages_if_two(page)
 
-    tables = []
+    extracted_tables = []
     for page in pages:
         for i in range(len(page)):
             row = page[i]
             page[i] = _cleaned_row(row)
 
-        tables.append(_table_extracted_from_page(page))
-    return tables
+        extracted_tables.append(_table_extracted_from_page(page))
+    return extracted_tables
