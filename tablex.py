@@ -67,6 +67,8 @@ def _narrowed_page(page):
     # Remove all rows till the row that has a score less than average.
     # If the row is in the first half, remove all rows before it.
     # If the row is in the second half, remove all rows after it.
+    start = 0
+    end = len(scores)
     for i in range(len(scores)):
         # ith score is for the ith row.
         if scores[i] < average_score:
