@@ -1,5 +1,5 @@
 from utilities import metadata as md
-from utilities import separator, utils
+from utilities import separator, tools
 
 
 def _cleaned_row(provided_row):
@@ -46,7 +46,7 @@ def _calculated_score(provided_row, page):
             match = _found_match(cell, row)
             if match is None:
                 continue
-            if match in matches and not utils.contain_only_list_marker(matches[match]):
+            if match in matches and not tools.contain_only_list_marker(matches[match]):
                 bad_match = True
                 break
             matches[match] = cell["title"]
@@ -120,7 +120,7 @@ def tables(pdf_path, start=1, end=1):
     page = []
     row = []
     for cell in cells:
-        cell["title"] = utils.sanitized(cell["title"])
+        cell["title"] = tools.sanitized(cell["title"])
         if len(row) == 0 or cell["top"] - row[0]["top"] < 1:
             row.append(cell)
         else:

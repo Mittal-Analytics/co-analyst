@@ -1,6 +1,6 @@
 import re
 
-from utilities import utils
+from utilities import tools
 
 
 # Find all the different values of a property in the table.
@@ -55,7 +55,7 @@ def _point_has_no_number(title):
 
 
 def _point_has_no_list_marker(title):
-    if utils.has_list_marker(title):
+    if tools.has_list_marker(title):
         return -5
     return 10
 

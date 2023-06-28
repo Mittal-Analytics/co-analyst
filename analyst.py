@@ -1,7 +1,7 @@
 import json
 import os
 
-from utilities import explorer, grader, tablex, unifier, utils
+from utilities import explorer, grader, tablex, tools, unifier
 
 
 def _extract_data_from_table(statement_name, table, grading, column_names, unit):
@@ -12,12 +12,12 @@ def _extract_data_from_table(statement_name, table, grading, column_names, unit)
                 len(stack) > 1
                 and grading[row[0]["title"]] >= grading[stack[-1]["title"]]
             ):
-                stack[-1]["title"] = utils.remove_list_marker(stack[-1]["title"])
+                stack[-1]["title"] = tools.remove_list_marker(stack[-1]["title"])
                 stack[-2]["data"].append(stack[-1])
                 stack.pop()
         except KeyError:
             if len(row) == 2:
-                stack[-1]["title"] = utils.remove_list_marker(stack[-1]["title"])
+                stack[-1]["title"] = tools.remove_list_marker(stack[-1]["title"])
                 stack[-2]["data"].append(stack[-1])
                 stack.pop()
         stack.append({"title": row[0]["title"], "data": []})
@@ -25,40 +25,40 @@ def _extract_data_from_table(statement_name, table, grading, column_names, unit)
             stack[-1]["title"] = stack[-2]["title"]
             stack[-1]["data"].append(
                 {
-                    column_names[1]: utils.negate(
-                        utils.remove_list_marker(row[0]["title"])
+                    column_names[1]: tools.negate(
+                        tools.remove_list_marker(row[0]["title"])
                     ),
-                    column_names[2]: utils.negate(
-                        utils.remove_list_marker(row[1]["title"])
+                    column_names[2]: tools.negate(
+                        tools.remove_list_marker(row[1]["title"])
                     ),
                 }
             )
         elif len(row) == 3:
             stack[-1]["data"].append(
                 {
-                    column_names[1]: utils.negate(
-                        utils.remove_list_marker(row[1]["title"])
+                    column_names[1]: tools.negate(
+                        tools.remove_list_marker(row[1]["title"])
                     ),
-                    column_names[2]: utils.negate(
-                        utils.remove_list_marker(row[2]["title"])
+                    column_names[2]: tools.negate(
+                        tools.remove_list_marker(row[2]["title"])
                     ),
                 }
             )
         elif len(row) == 4:
             stack[-1]["data"].append(
                 {
-                    column_names[0]: utils.remove_list_marker(row[1]["title"]),
-                    column_names[1]: utils.negate(
-                        utils.remove_list_marker(row[2]["title"])
+                    column_names[0]: tools.remove_list_marker(row[1]["title"]),
+                    column_names[1]: tools.negate(
+                        tools.remove_list_marker(row[2]["title"])
                     ),
-                    column_names[2]: utils.negate(
-                        utils.remove_list_marker(row[3]["title"])
+                    column_names[2]: tools.negate(
+                        tools.remove_list_marker(row[3]["title"])
                     ),
                 }
             )
 
     while len(stack) > 1:
-        stack[-1]["title"] = utils.remove_list_marker(stack[-1]["title"])
+        stack[-1]["title"] = tools.remove_list_marker(stack[-1]["title"])
         stack[-2]["data"].append(stack[-1])
         stack.pop()
 
