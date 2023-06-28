@@ -1,6 +1,5 @@
-import metadata as md
-import separator
-import utils
+from utilities import metadata as md
+from utilities import separator, utils
 
 
 def _cleaned_row(provided_row):

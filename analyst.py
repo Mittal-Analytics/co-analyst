@@ -1,11 +1,7 @@
 import json
 import os
 
-import explorer
-import grader
-import tablex
-import unifier
-import utils
+from utilities import explorer, grader, tablex, unifier, utils
 
 
 def _extract_data_from_table(statement_name, table, grading, column_names, unit):

@@ -1,6 +1,6 @@
 import re
 
-import utils
+from utilities import utils
 
 
 # Find all the different values of a property in the table.
