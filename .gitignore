@@ -1,9 +1,9 @@
-# environment
+# Environment
 .venv
 .env
 
-# temporary
+# Temporary
 *tmp*
 
-# macOS-specific files
+# macOS-Specific Files
 .DS_Store
