@@ -1,4 +1,4 @@
-def _found_separation_point(page):
+def _find_separation_point(page):
     lefts = []
     for row in page:
         for cell in row:
@@ -31,7 +31,7 @@ def _found_separation_point(page):
     return separation_point
 
 
-def _separated_rows(row, separation_point):
+def _separate_rows(row, separation_point):
     rows = [[], []]
     for cell in row:
         if cell["left"] < separation_point:
@@ -41,13 +41,13 @@ def _separated_rows(row, separation_point):
     return rows
 
 
-def separated_pages_if_two(page):
-    separation_point = _found_separation_point(page)
+def separate_pages_if_two(page):
+    separation_point = _find_separation_point(page)
     if separation_point is None:
         return [page]
     pages = [[], []]
     for row in page:
-        rows = _separated_rows(row, separation_point)
+        rows = _separate_rows(row, separation_point)
         if len(rows[0]):
             pages[0].append(rows[0])
         if len(rows[1]):

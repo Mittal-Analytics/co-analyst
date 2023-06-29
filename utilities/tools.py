@@ -8,7 +8,7 @@ def has_list_marker(title):
 
 def contain_only_list_marker(title):
     # Max length of list marker is 7 ~ (viii)[space].
-    return len(title) <= 7 and has_list_marker(title + " ")
+    return has_list_marker(title + " ") and len(title) <= 7
 
 
 def remove_list_marker(title):
@@ -17,10 +17,10 @@ def remove_list_marker(title):
 
 
 # Remove all commas for numerical values otherwise all dots (if not list marker).
-def sanitized(cell_title):
+def sanitize(cell_title):
+    # Pattern to match a figure with commas and decimal points.
     if re.match(r"^\d{1,3}(,\d{3})*(\.\d+)?|\d+(\.\d+)?$", cell_title):
         return cell_title.replace(",", "").strip()
-    # Max length of list marker is 7 ~ (viii)[space].
     if contain_only_list_marker(cell_title):
         return cell_title.strip()
     return cell_title.strip().rstrip(".")

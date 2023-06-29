@@ -120,7 +120,7 @@ def tables(pdf_path, start=1, end=1):
     page = []
     row = []
     for cell in cells:
-        cell["title"] = tools.sanitized(cell["title"])
+        cell["title"] = tools.sanitize(cell["title"])
         if len(row) == 0 or cell["top"] - row[0]["top"] < 1:
             row.append(cell)
         else:
@@ -128,7 +128,7 @@ def tables(pdf_path, start=1, end=1):
             row = [cell]
     page.append(sorted(row, key=lambda x: x["left"]))
 
-    pages = separator.separated_pages_if_two(page)
+    pages = separator.separate_pages_if_two(page)
 
     extracted_tables = []
     for page in pages:
