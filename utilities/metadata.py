@@ -25,11 +25,11 @@ def complete_metadata(pdf_path):
 # index for "start" and "end" starts from 1 (not 0).
 def page_range_metadata(pdf_path, start, end):
     _tmp_check()
-    metadata = ""
+    metadata = []
     for i in range(start, end + 1):
         os.system(f"pdfxmeta -p {i} {pdf_path} > {METADATA_FILE}")
         with open(METADATA_FILE, "r") as f:
-            metadata += f.read()
+            metadata.append(f.read())
     os.remove(METADATA_FILE)
     return metadata
 

@@ -1,8 +1,9 @@
+from utilities import artist
 from utilities import metadata as md
 from utilities import separator, tools
 
 
-def _cleaned_row(provided_row):
+def _empty_cells_removed(provided_row):
     row = []
     for cell in provided_row:
         if not cell["title"].strip() == "":
@@ -88,8 +89,9 @@ def _table_extracted_from_page(page):
 
 
 # Extract tables from pdf page(s).
-def tables(pdf_path, start=1, end=1):
-    metadata = md.page_range_metadata(pdf_path, start, end)
+def extract_tables(pdf_path, start=1, end=1):
+    artist.get_table_drawings(pdf_path, start, end)
+    metadata = "\n".join(md.page_range_metadata(pdf_path, start, end))
     info = md.info_extracted_from_metadata(
         metadata,
         [
@@ -134,7 +136,7 @@ def tables(pdf_path, start=1, end=1):
     for page in pages:
         for i in range(len(page)):
             row = page[i]
-            page[i] = _cleaned_row(row)
+            page[i] = _empty_cells_removed(row)
 
         extracted_tables.append(_table_extracted_from_page(page))
     return extracted_tables

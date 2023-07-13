@@ -12,7 +12,7 @@ def find_page_range(pdf_path, statement_name):
         page = doc[i]
         text = page.get_text().lower()
         if statement_name in text:
-            metadata = md.page_range_metadata(pdf_path, i + 1, i + 1)
+            metadata = "\n".join(md.page_range_metadata(pdf_path, i + 1, i + 1))
             info = md.info_extracted_from_metadata(metadata, ["font.size", "font.bold"])
             cells = []
             for inf in info:
