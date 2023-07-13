@@ -124,7 +124,11 @@ def _find_tables(figures):
 def get_table_drawings(pdf_path, start, end):
     drawings = []
     doc = fitz.open(pdf_path)
-    for page in doc[start - 1 : end]:
+    pages = []
+    for page in doc:
+        if page.number + 1 >= start and page.number + 1 <= end:
+            pages.append(page)
+    for page in pages:
         paths = page.get_cdrawings()
         figures = []
         for path in paths:
@@ -141,3 +145,11 @@ def get_table_drawings(pdf_path, start, end):
         tables = _find_tables(figures)
         drawings.append(tables)
     return drawings
+
+
+def get_coordinates(table_drawing):
+    min_x = _min_x(table_drawing)
+    min_y = _min_y(table_drawing)
+    max_x = max(max(f[1][0], f[2][0]) for f in table_drawing)
+    max_y = max(max(f[1][1], f[2][1]) for f in table_drawing)
+    return min_x, min_y, max_x, max_y

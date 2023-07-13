@@ -11,86 +11,28 @@ def _empty_cells_removed(provided_row):
     return row
 
 
-# Determine if there is an overlap between two cells.
-def _overlap(cell1, cell2):
-    left1 = cell1["left"]
-    right1 = cell1["right"]
-    left2 = cell2["left"]
-    right2 = cell2["right"]
-
-    if left1 <= left2 <= right1:
-        return True
-    if left1 <= right2 <= right1:
-        return True
-    if left2 <= left1 <= right2:
-        return True
-    if left2 <= right1 <= right2:
-        return True
-    return False
-
-
-# Find a match (format) for a provided cell against every other cell in a row.
-def _found_match(provided_cell, row):
-    for cell in row:
-        if _overlap(provided_cell, cell):
-            return row.index(cell)
-    return None
-
-
-# Calculate the score of a row based on how similar it is (format) to other rows.
-def _calculated_score(provided_row, page):
-    score = 0
-    for row in page:
-        matches = {}
-        bad_match = False
-        for cell in provided_row:
-            match = _found_match(cell, row)
-            if match is None:
-                continue
-            if match in matches and not tools.contain_only_list_marker(matches[match]):
-                bad_match = True
-                break
-            matches[match] = cell["title"]
-        if bad_match:
-            continue
-        score += 1
-    return score
-
-
 # Narrow down the page to only the rows that are part of the table.
-def _narrowed_page(page):
-    scores = [_calculated_score(row, page) for row in page]
-
-    # TODO: 2 is an approximation. Needs to be eradicated.
-    average_score = (sum(scores) / len(scores)) - 2
-
-    # Remove all rows till the row that has a score less than average.
-    # If the row is in the first half, remove all rows before it.
-    # If the row is in the second half, remove all rows after it.
-    start = 0
-    end = len(scores)
-    for i in range(len(scores)):
-        # ith score is for the ith row.
-        if scores[i] < average_score:
-            if i < (len(scores) / 2):
-                # +1 to not include the row with score less than average.
-                start = i + 1
-            else:
-                # No +1 to not include the row with score less than average.
-                end = i
+def _narrowed_page(page, table_drawing):
+    x0, y0, x1, y1 = artist.get_coordinates(table_drawing)
+    table = []
+    for row in page:
+        for cell in row:
+            if cell["top"] >= y0 and cell["top"] <= y1:
+                table.append(row)
                 break
+    return table
 
-    return page[start:end]
 
-
-def _table_extracted_from_page(page):
-    table = _narrowed_page(page)
+def _table_extracted_from_page(page, table_drawing):
+    table = _narrowed_page(page, table_drawing)
+    for row in table:
+        print([cell["title"] for cell in row])
     return table
 
 
 # Extract tables from pdf page(s).
 def extract_tables(pdf_path, start=1, end=1):
-    artist.get_table_drawings(pdf_path, start, end)
+    table_drawings = artist.get_table_drawings(pdf_path, start, end)[0]
     metadata = "\n".join(md.page_range_metadata(pdf_path, start, end))
     info = md.info_extracted_from_metadata(
         metadata,
@@ -137,6 +79,7 @@ def extract_tables(pdf_path, start=1, end=1):
         for i in range(len(page)):
             row = page[i]
             page[i] = _empty_cells_removed(row)
-
-        extracted_tables.append(_table_extracted_from_page(page))
+        extracted_tables.append(
+            _table_extracted_from_page(page, table_drawings[pages.index(page)])
+        )
     return extracted_tables
