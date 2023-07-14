@@ -25,8 +25,6 @@ def _narrowed_page(page, table_drawing):
 
 def _table_extracted_from_page(page, table_drawing):
     table = _narrowed_page(page, table_drawing)
-    for row in table:
-        print([cell["title"] for cell in row])
     return table
 
 
