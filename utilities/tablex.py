@@ -13,7 +13,7 @@ def _empty_cells_removed(provided_row):
 
 # Narrow down the page to only the rows that are part of the table.
 def _narrowed_page(page, table_drawing):
-    x0, y0, x1, y1 = artist.get_coordinates(table_drawing)
+    x0, y0, x1, y1 = artist.get_min_max_coordinates(table_drawing)
     table = []
     for row in page:
         for cell in row:

@@ -178,7 +178,7 @@ def get_table_drawings(pdf_path, start, end):
     return table_drawings
 
 
-def get_coordinates(table_drawing):
+def get_min_max_coordinates(table_drawing):
     min_x = _min_x(table_drawing)
     min_y = _min_y(table_drawing)
     max_x = _max_x(table_drawing)
