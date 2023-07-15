@@ -2,8 +2,11 @@
 .venv
 .env
 
-# Temporary
-*tmp*
-
 # macOS-Specific Files
 .DS_Store
+
+# Python Bytecode
+*.pyc
+
+# Temporary
+*tmp*

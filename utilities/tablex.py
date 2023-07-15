@@ -23,13 +23,58 @@ def _narrowed_page(page, table_drawing):
     return table
 
 
+# Determine if there is an overlap between two cells.
+def _is_overlapping(cell1, cell2):
+    left1 = cell1["left"]
+    right1 = cell1["right"]
+    left2 = cell2["left"]
+    right2 = cell2["right"]
+
+    if left1 <= left2 <= right1:
+        return True
+    if left1 <= right2 <= right1:
+        return True
+    if left2 <= left1 <= right2:
+        return True
+    if left2 <= right1 <= right2:
+        return True
+    return False
+
+
+def _format_table(provided_table):
+    provided_table.sort(key=lambda row: len(row), reverse=True)
+    table = [provided_table.pop(0)]
+    while provided_table:
+        row = provided_table.pop(0)
+        for i in range(len(table[0])):
+            if i < len(row) and _is_overlapping(row[i], table[0][i]):
+                continue
+            row.insert(
+                i,
+                {
+                    "title": "",
+                    "size": None,
+                    "color": None,
+                    "bold": None,
+                    "left": table[0][i]["left"],
+                    "right": table[0][i]["right"],
+                    "top": row[0]["top"],
+                },
+            )
+        table.append(row)
+    table.sort(key=lambda row: row[0]["top"])
+    return table
+
+
 def _table_extracted_from_page(page, table_drawing):
     table = _narrowed_page(page, table_drawing)
+    table = _format_table(table)
     return table
 
 
 # Extract tables from pdf page(s).
 def extract_tables(pdf_path, start=1, end=1):
+    # TODO: This will need to be changed while adding support for start and end.
     table_drawings = artist.get_table_drawings(pdf_path, start, end)[0]
     metadata = "\n".join(md.page_range_metadata(pdf_path, start, end))
     info = md.info_extracted_from_metadata(
@@ -77,7 +122,6 @@ def extract_tables(pdf_path, start=1, end=1):
         for i in range(len(page)):
             row = page[i]
             page[i] = _empty_cells_removed(row)
-        extracted_tables.append(
-            _table_extracted_from_page(page, table_drawings[pages.index(page)])
-        )
+        # TODO: This will need to be changed while adding support for start and end.
+        extracted_tables.append(_table_extracted_from_page(page, table_drawings[0]))
     return extracted_tables
