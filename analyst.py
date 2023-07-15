@@ -95,9 +95,6 @@ def extract_data_from_pdf(pdf_path, **kwargs):
             table, explorer.find_max_cell_length(table), max_cell_right
         )
 
-        start, end = explorer.find_table_range(table, column_positions)
-        table = table[start : end + 1]
-
         first_row = explorer.find_first_row(table)
         column_names = explorer.find_column_names(table[0:first_row])
         table = table[first_row:]

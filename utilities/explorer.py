@@ -39,12 +39,12 @@ def find_page_range(pdf_path, statement_name):
 
 def find_unit(pdf_path, start):
     possible_units = [
-        ["trillions", "trillion"],
-        ["billions", "billion"],
-        ["crores", "crore"],
-        ["millions", "million"],
-        ["lakhs", "lakh"],
-        ["thousands", "thousand"],
+        "trillion",
+        "billion",
+        "crore",
+        "million",
+        "lakh",
+        "thousand",
     ]
     possible_numerical_units = [
         ["000000000000s", "'000000000000"],
@@ -57,14 +57,13 @@ def find_unit(pdf_path, start):
     doc = fitz.open(pdf_path)
     page = doc[start - 1]
     text = page.get_text().lower()
-    for units in possible_units:
-        for unit in units:
-            if unit in text:
-                return units[0]
+    for unit in possible_units:
+        if unit in text:
+            return unit + "s"
     for units in possible_numerical_units:
         for unit in units:
             if unit in text:
-                return possible_units[possible_numerical_units.index(units)][0]
+                return possible_units[possible_numerical_units.index(units)] + "s"
 
 
 def find_column_positions(table):
@@ -141,58 +140,6 @@ def find_max_cell_length(table):
             if len(cell["title"]) > max_length:
                 max_length = len(cell["title"])
     return max_length
-
-
-def _is_first_row_match(row, column_positions):
-    row_length = len(row)
-    if row_length == 3:
-        for i in range(3):
-            if not (
-                column_positions[i + 1]["left"]
-                <= row[i]["left"]
-                <= row[i]["right"]
-                <= column_positions[i + 1]["right"]
-            ):
-                return False
-    elif row_length == 4:
-        for i in range(4):
-            if not (
-                column_positions[i]["left"]
-                <= row[i]["left"]
-                <= row[i]["right"]
-                <= column_positions[i]["right"]
-            ):
-                return False
-    else:
-        return False
-    return True
-
-
-def _is_last_row_match(row, column_positions):
-    row_length = len(row)
-    if row_length == 3:
-        if (
-            abs(column_positions[0]["left"] - row[0]["left"]) > 50
-            or abs(column_positions[2]["left"] - row[1]["left"]) > 50
-            or abs(column_positions[3]["left"] - row[2]["left"]) > 50
-        ):
-            return False
-    else:
-        return False
-    return True
-
-
-def find_table_range(table, column_positions):
-    table_range = []
-    for row in table:
-        if _is_first_row_match(row, column_positions):
-            table_range.append(table.index(row))
-            break
-    for row in table[::-1]:
-        if _is_last_row_match(row, column_positions):
-            table_range.append(table.index(row))
-            break
-    return table_range
 
 
 def find_first_row(table):
