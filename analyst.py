@@ -90,6 +90,7 @@ def extract_data_from_pdf(pdf_path, **kwargs):
         max_cell_right = column_positions[1]["left"] - (
             column_positions[2]["left"] - column_positions[1]["left"] * 3 / 2
         )
+        # TODO: Modify this function to unite rows no matter what column position.
         unifier.unite_separated_rows(
             table, explorer.find_max_cell_length(table), max_cell_right
         )
