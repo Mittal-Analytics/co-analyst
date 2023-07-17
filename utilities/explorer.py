@@ -67,57 +67,15 @@ def find_unit(pdf_path, start):
 
 
 def find_column_positions(table):
+    number_of_columns = len(table[0])
     column_positions = []
-
-    # Assuming there will always be 4 columns.
-    columns = [[], [], [], []]
-
-    skipped_rows = []
-    for row in table:
-        if len(row) == 4:
-            for cell in row:
-                columns[row.index(cell)].append([cell["left"], cell["right"]])
-        elif len(row) < 4:
-            skipped_rows.append(row)
-
-    for row in skipped_rows:
-        for cell in row:
-            closest = None
-            closest_diff = 10000
-            for column in columns:
-                curr_diff = abs(cell["left"] - column[0][0]) + abs(
-                    cell["right"] - column[0][1]
-                )
-                if len(column) and curr_diff < closest_diff:
-                    closest = column
-                    closest_diff = curr_diff
-            if closest_diff <= 100:
-                closest.append([cell["left"], cell["right"]])
-
-    for column in columns[::-1]:
-        column.sort(key=lambda x: x[0])
-        left_count = [[column[0][0], 1]]
-        for cell in column[1:]:
-            if cell[0] - left_count[-1][0] > 10:
-                left_count.append([cell[0], 1])
-            else:
-                left_count[-1][1] += 1
-        left_count.sort(key=lambda x: x[1], reverse=True)
-        left = left_count[0][0]
-        column.sort(key=lambda x: x[1])
-        right = column[0][1]
-        if len(column_positions):
-            for cell in column[::-1]:
-                if cell[1] > right and cell[1] < column_positions[-1]["left"]:
-                    right = cell[1]
-                    break
-            for cell in columns[columns.index(column) + 1]:
-                if cell[0] < column_positions[-1]["left"] and cell[0] > right:
-                    column_positions[-1]["left"] = cell[0]
-        else:
-            right = column[-1][1]
-        column_positions.append({"left": left - 10, "right": right})
-    column_positions = column_positions[::-1]
+    for i in range(number_of_columns):
+        column_positions.append(
+            {
+                "left": min([row[i]["left"] for row in table if len(row) > i]),
+                "right": max([row[i]["right"] for row in table if len(row) > i]),
+            }
+        )
     return column_positions
 
 
