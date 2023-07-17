@@ -1,4 +1,4 @@
-from utilities import tools
+from . import tools
 
 
 def unite_separated_list_markers(table):

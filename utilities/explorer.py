@@ -2,7 +2,7 @@ import re
 
 import fitz
 
-from utilities import metadata as md
+from . import metadata as md
 
 
 def find_page_range(pdf_path, statement_name):

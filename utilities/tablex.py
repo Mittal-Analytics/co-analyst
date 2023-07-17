@@ -1,6 +1,6 @@
-from utilities import artist
-from utilities import metadata as md
-from utilities import separator, tools, unifier
+from . import artist
+from . import metadata as md
+from . import separator, tools, unifier
 
 
 def _empty_cells_removed(provided_row):
