@@ -79,16 +79,18 @@ def find_column_positions(table):
     return column_positions
 
 
-def find_statement_name(table):
+def find_statement_name(pdf_path, start):
     possible_statements = [
         "profit and loss",
         "balance sheet",
     ]
-    for row in table:
-        for cell in row:
-            for statement in possible_statements:
-                if statement in cell["title"].lower():
-                    return statement
+    doc = fitz.open(pdf_path)
+    page = doc[start - 1]
+    text = page.get_text().lower()
+    for statement_name in possible_statements:
+        if statement_name in text:
+            return statement_name
+    return None
 
 
 def find_max_cell_length(table):

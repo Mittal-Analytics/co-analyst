@@ -71,6 +71,7 @@ def extract_data_from_pdf(pdf_path, **kwargs):
 
     try:
         start, end = kwargs["start"], kwargs["end"]
+        statement_name = explorer.find_statement_name(pdf_path, start)
     except KeyError:
         try:
             statement_name = kwargs["statement_name"].lower()
@@ -85,8 +86,6 @@ def extract_data_from_pdf(pdf_path, **kwargs):
     for table in tables:
         column_positions = explorer.find_column_positions(table)
         table = unifier.unite_separated_cells(table, column_positions)
-
-        statement_name = explorer.find_statement_name(table)
 
         max_cell_right = column_positions[1]["left"] - (
             column_positions[2]["left"] - column_positions[1]["left"] * 3 / 2
