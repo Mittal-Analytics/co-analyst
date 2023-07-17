@@ -18,7 +18,7 @@ def remove_list_marker(title):
 
 # Remove all commas for numerical values otherwise all dots (if not list marker).
 def sanitize(cell_title):
-    # Pattern to match a figure with commas and decimal points.
+    # Pattern to match a numerical figure with commas and decimal points.
     if re.match(r"^\d{1,3}(,\d{3})*(\.\d+)?|\d+(\.\d+)?$", cell_title):
         return cell_title.replace(",", "").strip()
     if contain_only_list_marker(cell_title):

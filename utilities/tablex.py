@@ -1,6 +1,6 @@
 from utilities import artist
 from utilities import metadata as md
-from utilities import separator, tools
+from utilities import separator, tools, unifier
 
 
 def _empty_cells_removed(provided_row):
@@ -24,21 +24,53 @@ def _narrowed_page(page, table_drawing):
 
 
 # Determine if there is an overlap between two cells.
-def _is_overlapping(cell1, cell2):
+# 0 = cell1 and cell2 overlap.
+# -1 = cell1 is to the left of cell2.
+# 1 = cell1 is to the right of cell2.
+def _find_cell_overlap(cell1, cell2):
     left1 = cell1["left"]
     right1 = cell1["right"]
     left2 = cell2["left"]
     right2 = cell2["right"]
 
-    if left1 <= left2 <= right1:
-        return True
-    if left1 <= right2 <= right1:
-        return True
-    if left2 <= left1 <= right2:
-        return True
-    if left2 <= right1 <= right2:
-        return True
-    return False
+    if right2 < left1:
+        return -1
+    if right1 < left2:
+        return 1
+    return 0
+
+
+def _inject_blank_cell(row, i, left, right, top):
+    row.insert(
+        i,
+        {
+            "title": "",
+            "size": None,
+            "color": None,
+            "bold": None,
+            "left": left,
+            "right": right,
+            "top": top,
+        },
+    )
+
+
+def _format_cell(table, row, i):
+    overlap = _find_cell_overlap(table[0][i], row[i])
+    if overlap == -1:
+        _inject_blank_cell(
+            table[0], i, row[i]["left"], row[i]["right"], table[0][i]["top"]
+        )
+    elif overlap == 1:
+        _inject_blank_cell(
+            row, i, table[0][i]["left"], table[0][i]["right"], row[0]["top"]
+        )
+
+
+def _format_row(table, row):
+    for i in range(len(table[0])):
+        if i < len(row):
+            _format_cell(table, row, i)
 
 
 def _format_table(provided_table):
@@ -46,21 +78,7 @@ def _format_table(provided_table):
     table = [provided_table.pop(0)]
     while provided_table:
         row = provided_table.pop(0)
-        for i in range(len(table[0])):
-            if i < len(row) and _is_overlapping(row[i], table[0][i]):
-                continue
-            row.insert(
-                i,
-                {
-                    "title": "",
-                    "size": None,
-                    "color": None,
-                    "bold": None,
-                    "left": table[0][i]["left"],
-                    "right": table[0][i]["right"],
-                    "top": row[0]["top"],
-                },
-            )
+        _format_row(table, row)
         table.append(row)
     table.sort(key=lambda row: row[0]["top"])
     return table
@@ -68,6 +86,8 @@ def _format_table(provided_table):
 
 def _table_extracted_from_page(page, table_drawing):
     table = _narrowed_page(page, table_drawing)
+    # Formatting tables twice is a hack to fix the mess made by first formatting.
+    table = _format_table(table)
     table = _format_table(table)
     return table
 
@@ -122,6 +142,7 @@ def extract_tables(pdf_path, start=1, end=1):
         for i in range(len(page)):
             row = page[i]
             page[i] = _empty_cells_removed(row)
+        page = unifier.unite_separated_list_markers(page)
         # TODO: This will need to be changed while adding support for start and end.
         extracted_tables.append(_table_extracted_from_page(page, table_drawings[0]))
     return extracted_tables

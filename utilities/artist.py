@@ -160,7 +160,7 @@ def get_table_drawings(pdf_path, start, end):
                             "y1": item[1][3],
                         }
                     )
-                # If the figure is extracted in reverse order, swap the coordinates.
+                # If the figure was extracted in reverse order, swap the coordinates.
                 if figures and (
                     figures[-1]["x0"] > figures[-1]["x1"]
                     or figures[-1]["y0"] > figures[-1]["y1"]

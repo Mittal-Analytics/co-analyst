@@ -1,3 +1,22 @@
+from utilities import tools
+
+
+def unite_separated_list_markers(table):
+    for row in table:
+        row_length = len(row)
+        if row_length > 1:
+            i = 0
+            while i < row_length - 1 and i < 1:
+                if tools.contain_only_list_marker(row[i]["title"]):
+                    row[i]["title"] += " " + row[i + 1]["title"]
+                    row[i]["right"] = row[i + 1]["right"]
+                    row.pop(i + 1)
+                    break
+                else:
+                    i += 1
+    return table
+
+
 def unite_separated_cells(table, column_positions):
     for row in table:
         row_length = len(row)
