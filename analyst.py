@@ -1,7 +1,7 @@
 import json
 import os
 
-from utilities import explorer, grader, tablex, tools, unifier
+from utilities import explorer, grader, tablex, tools
 
 
 def _extract_data_from_table(statement_name, table, grading, column_names, unit):
@@ -81,20 +81,10 @@ def extract_data_from_pdf(pdf_path, **kwargs):
 
     unit = explorer.find_unit(pdf_path, start)
     tables = tablex.extract_tables(pdf_path, start, end)
+    tools.sanitize(tables)
 
     response = []
     for table in tables:
-        column_positions = explorer.find_column_positions(table)
-        table = unifier.unite_separated_cells(table, column_positions)
-
-        max_cell_right = column_positions[1]["left"] - (
-            column_positions[2]["left"] - column_positions[1]["left"] * 3 / 2
-        )
-        # TODO: Modify this function to unite rows no matter what column position.
-        unifier.unite_separated_rows(
-            table, explorer.find_max_cell_length(table), max_cell_right
-        )
-
         first_row = explorer.find_first_row(table)
         column_names = explorer.find_column_names(table[0:first_row])
         table = table[first_row:]

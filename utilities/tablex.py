@@ -1,6 +1,8 @@
+from utilities import explorer
+
 from . import artist
 from . import metadata as md
-from . import separator, tools, unifier
+from . import separator, unifier
 
 
 def _empty_cells_removed(provided_row):
@@ -96,6 +98,7 @@ def _table_extracted_from_page(page, table_drawing):
 def extract_tables(pdf_path, start=1, end=1):
     # TODO: This will need to be changed while adding support for start and end.
     table_drawings = artist.get_table_drawings(pdf_path, start, end)[0]
+
     metadata = "\n".join(md.page_range_metadata(pdf_path, start, end))
     info = md.info_extracted_from_metadata(
         metadata,
@@ -127,7 +130,7 @@ def extract_tables(pdf_path, start=1, end=1):
     page = []
     row = []
     for cell in cells:
-        cell["title"] = tools.sanitize(cell["title"])
+        cell["title"] = cell["title"].rstrip()
         if len(row) == 0 or cell["top"] - row[0]["top"] < 1:
             row.append(cell)
         else:
@@ -142,7 +145,16 @@ def extract_tables(pdf_path, start=1, end=1):
         for i in range(len(page)):
             row = page[i]
             page[i] = _empty_cells_removed(row)
+
+        # TODO: We need to find a better solution than just uniting list markers.
         page = unifier.unite_separated_list_markers(page)
+
         # TODO: This will need to be changed while adding support for start and end.
-        extracted_tables.append(_table_extracted_from_page(page, table_drawings[0]))
+        table = _table_extracted_from_page(page, table_drawings[0])
+
+        column_positions = explorer.find_column_positions(table)
+        table = unifier.unite_separated_cells(table, column_positions)
+        table = unifier.unite_separated_rows(table, column_positions)
+
+        extracted_tables.append(table)
     return extracted_tables
