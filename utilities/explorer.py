@@ -72,8 +72,8 @@ def find_column_positions(table):
     for i in range(number_of_columns):
         column_positions.append(
             {
-                "left": min([row[i]["left"] for row in table if len(row) > i]),
-                "right": max([row[i]["right"] for row in table if len(row) > i]),
+                "left": min([row[i]["left"] for row in table]),
+                "right": max([row[i]["right"] for row in table]),
             }
         )
     return column_positions

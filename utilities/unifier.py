@@ -12,33 +12,24 @@ def unite_separated_list_markers(table):
         row_length = len(row)
         i = 0
         while i < row_length - 1 and i < 1:
-            if tools.contain_only_list_marker(row[i]["title"]):
+            if (
+                tools.contain_only_list_marker(row[i]["title"])
+                and row[i + 1]["left"] - row[i]["right"]
+                < 50  # TODO: Eradicate magic number.
+            ):
                 _merge_cells(row, i, i + 1)
                 break
             else:
                 i += 1
-    return table
-
-
-def unite_separated_cells(table, column_positions):
-    for row in table:
-        row_length = len(row)
-        i = 0
-        while i < row_length - 1:
-            if row[i + 1]["left"] < column_positions[i + 1]["left"]:
-                _merge_cells(row, i, i + 1)
-                row_length -= 1
-            else:
-                i += 1
-    return table
 
 
 def _merge_rows(table, i1, i2):
     row1 = table[i1]
     row2 = table[i2]
-    len(row1)
-    for i in range(len(row1)):
-        row1[i]["title"] += "\n" + row2[i]["title"]
+    row1_length = len(row1)
+    for i in range(row1_length):
+        if row1[i]["title"] and row2[i]["title"]:
+            row1[i]["title"] += "\n" + row2[i]["title"]
     table.pop(i2)
 
 

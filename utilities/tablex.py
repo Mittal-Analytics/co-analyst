@@ -1,4 +1,4 @@
-from utilities import explorer
+from utilities import explorer, tools
 
 from . import artist
 from . import metadata as md
@@ -73,6 +73,10 @@ def _format_row(table, row):
     for i in range(len(table[0])):
         if i < len(row):
             _format_cell(table, row, i)
+        else:
+            _inject_blank_cell(
+                row, i, table[0][i]["left"], table[0][i]["right"], row[0]["top"]
+            )
 
 
 def _format_table(provided_table):
@@ -130,7 +134,7 @@ def extract_tables(pdf_path, start=1, end=1):
     page = []
     row = []
     for cell in cells:
-        cell["title"] = cell["title"].rstrip()
+        cell["title"] = tools.sanitize_cell_title(cell["title"])
         if len(row) == 0 or cell["top"] - row[0]["top"] < 1:
             row.append(cell)
         else:
@@ -147,14 +151,13 @@ def extract_tables(pdf_path, start=1, end=1):
             page[i] = _empty_cells_removed(row)
 
         # TODO: We need to find a better solution than just uniting list markers.
-        page = unifier.unite_separated_list_markers(page)
+        unifier.unite_separated_list_markers(page)
 
         # TODO: This will need to be changed while adding support for start and end.
         table = _table_extracted_from_page(page, table_drawings[0])
 
         column_positions = explorer.find_column_positions(table)
-        table = unifier.unite_separated_cells(table, column_positions)
-        table = unifier.unite_separated_rows(table, column_positions)
+        unifier.unite_separated_rows(table, column_positions)
 
         extracted_tables.append(table)
     return extracted_tables

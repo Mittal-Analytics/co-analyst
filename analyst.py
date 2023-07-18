@@ -81,7 +81,6 @@ def extract_data_from_pdf(pdf_path, **kwargs):
 
     unit = explorer.find_unit(pdf_path, start)
     tables = tablex.extract_tables(pdf_path, start, end)
-    tools.sanitize(tables)
 
     response = []
     for table in tables:
