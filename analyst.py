@@ -88,7 +88,7 @@ def extract_data_from_pdf(pdf_path, **kwargs):
         column_names = explorer.find_column_names(table[0:first_row])
         table = table[first_row:]
 
-        grading = grader.make_grading(table)
+        grading = grader.get_grading(table)
         data = _extract_data_from_table(
             statement_name, table, grading, column_names, unit
         )

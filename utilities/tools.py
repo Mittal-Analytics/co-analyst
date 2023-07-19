@@ -23,7 +23,7 @@ def sanitize_cell_title(cell_title):
         return cell_title.replace(",", "").strip()
     if contain_only_list_marker(cell_title):
         return cell_title.strip()
-    return cell_title.strip().rstrip(".")
+    return cell_title.strip().rstrip(".").strip()
 
 
 # Put a "-" symbol in front of the value if it is in parentheses.

@@ -1,3 +1,5 @@
+from utilities import grader
+
 from . import tools
 
 
@@ -23,6 +25,22 @@ def unite_separated_list_markers(table):
                 i += 1
 
 
+def _are_other_cells_empty(row):
+    content_count = 0
+    for cell in row:
+        if cell["title"]:
+            content_count += 1
+    return content_count == 1
+
+
+def _is_content_same_level(table, i1, i2, j):
+    grading = grader.get_grading([table[i1], table[i2]])
+    return (
+        abs(grading[table[i1][j]["title"]] - grading[table[i2][j]["title"]])
+        < 10  # TODO: Eradicate magic number.
+    )
+
+
 def _merge_rows(table, i1, i2):
     row1 = table[i1]
     row2 = table[i2]
@@ -30,9 +48,31 @@ def _merge_rows(table, i1, i2):
     for i in range(row1_length):
         if row1[i]["title"] and row2[i]["title"]:
             row1[i]["title"] += "\n" + row2[i]["title"]
+        elif row2[i]["title"]:
+            row1[i]["title"] = row2[i]["title"]
     table.pop(i2)
 
 
 def unite_separated_rows(table, column_positions):
-    # TODO: Complete this.
+    table_length = len(table)
+    i = 0
+    while i < table_length - 1:
+        row = table[i]
+        row_length = len(row)
+        for j in range(row_length):
+            cell = row[j]
+            if cell["title"] == "":
+                continue
+            if (
+                column_positions[j]["right"] - cell["right"]
+                < 10  # TODO: Eradicate magic number.
+            ):
+                if _are_other_cells_empty(row) and _is_content_same_level(
+                    table, i, i + 1, j
+                ):
+                    _merge_rows(table, i, i + 1)
+                    table_length -= 1
+                    i -= 1
+                    break
+        i += 1
     return table

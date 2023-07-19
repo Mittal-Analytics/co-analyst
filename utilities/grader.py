@@ -1,5 +1,3 @@
-import re
-
 from . import tools
 
 
@@ -20,7 +18,8 @@ def _find_property_values(table, property):
 
 def _point_size(size, sizes):
     # Negative points for having the most common size.
-    sizes.pop(0)
+    if sizes:
+        sizes.pop(0)
     for i in range(len(sizes)):
         if size == sizes[i][0]:
             return i + 50
@@ -29,7 +28,8 @@ def _point_size(size, sizes):
 
 def _point_color(color, colors):
     # Negative points for the having the most common color.
-    colors.pop(0)
+    if colors:
+        colors.pop(0)
     for i in range(len(colors)):
         if color == colors[i][0]:
             return i + 100
@@ -64,22 +64,21 @@ def _point_has_front_margin(left):
     return int(left)
 
 
-def make_grading(table):
+def get_grading(table):
     grading = {}
     sizes = _find_property_values(table, "size")
     colors = _find_property_values(table, "color")
     for row in table:
-        if re.match(r"^\d{1,3}(,\d{3})*(\.\d+)?|\d+(\.\d+)?$", row[0]["title"]):
-            continue
-        grading[row[0]["title"]] = (
-            _point_size(row[0]["size"], sizes)
-            + _point_color(row[0]["color"], colors)
-            + _point_bold(row[0]["bold"])
-            + _point_all_caps(row[0]["title"])
-            + _point_has_no_number(row[0]["title"])
-            + _point_has_no_list_marker(row[0]["title"])
-            - _point_has_front_margin(row[0]["left"])
-        )
+        for cell in row:
+            grading[cell["title"]] = (
+                _point_size(cell["size"], sizes)
+                + _point_color(cell["color"], colors)
+                + _point_bold(cell["bold"])
+                + _point_all_caps(cell["title"])
+                + _point_has_no_number(cell["title"])
+                + _point_has_no_list_marker(cell["title"])
+                - _point_has_front_margin(cell["left"])
+            )
 
     grading = {k: v for k, v in sorted(grading.items(), key=lambda item: item[1])}
     return grading
