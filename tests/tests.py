@@ -9,17 +9,13 @@ class TestTablex(unittest.TestCase):
     def test_tablex_sbi(self):
         with open("tests/expected-table/sbi-balance-sheet.json", "r") as f:
             expected = json.load(f)
-        actual = tablex.extract_tables(
-            "tests/annual-reports/sbi.pdf", start=119, end=119
-        )
+        actual = tablex.extract_tables("tests/annual-reports/sbi.pdf", 119)[0]
         self.assertEqual(expected, actual)
 
     def test_tablex_mm(self):
         with open("tests/expected-table/mm-balance-sheet.json", "r") as f:
             expected = json.load(f)
-        actual = tablex.extract_tables(
-            "tests/annual-reports/mm.pdf", start=252, end=252
-        )
+        actual = tablex.extract_tables("tests/annual-reports/mm.pdf", 252)[0]
         self.assertEqual(expected, actual)
 
 

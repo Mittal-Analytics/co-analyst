@@ -80,7 +80,9 @@ def extract_data_from_pdf(pdf_path, **kwargs):
             raise KeyError("Either start and end or statement_name must be provided.")
 
     unit = explorer.find_unit(pdf_path, start)
-    tables = tablex.extract_tables(pdf_path, start, end)
+    tables = []
+    for page_num in range(start - 1, end):
+        tables.append(tablex.extract_tables(pdf_path, page_num))
 
     response = []
     for table in tables:

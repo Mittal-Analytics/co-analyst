@@ -125,54 +125,50 @@ def _find_table_drawings(figures):
     return table_drawings
 
 
-def get_table_drawings(pdf_path, start, end):
+def get_table_drawings(pdf_path, page_num):
     table_drawings = []
     doc = fitz.open(pdf_path)
-    pages = []
-    for i in range(start - 1, end):
-        pages.append(doc[i])
-    for page in pages:
-        drawings = page.get_cdrawings()
-        figures = []
-        for drawing in drawings:
-            for item in drawing["items"]:
-                if item[0] == "l":
-                    # Only straight lines.
-                    if item[1][0] == item[2][0] or item[1][1] == item[2][1]:
-                        figures.append(
-                            {
-                                "type": "l",
-                                "x0": item[1][0],
-                                "y0": item[1][1],
-                                "x1": item[2][0],
-                                "y1": item[2][1],
-                            }
-                        )
-                elif item[0] == "re":
+    drawings = doc[page_num - 1].get_cdrawings()
+    figures = []
+    for drawing in drawings:
+        for item in drawing["items"]:
+            if item[0] == "l":
+                # Only straight lines.
+                if item[1][0] == item[2][0] or item[1][1] == item[2][1]:
                     figures.append(
                         {
-                            "type": "re",
+                            "type": "l",
                             "x0": item[1][0],
                             "y0": item[1][1],
-                            "x1": item[1][2],
-                            "y1": item[1][3],
+                            "x1": item[2][0],
+                            "y1": item[2][1],
                         }
                     )
-                # If the figure was extracted in reverse order, swap the coordinates.
-                if figures and (
-                    figures[-1]["x0"] > figures[-1]["x1"]
-                    or figures[-1]["y0"] > figures[-1]["y1"]
-                ):
-                    figures[-1]["x0"], figures[-1]["x1"] = (
-                        figures[-1]["x1"],
-                        figures[-1]["x0"],
-                    )
-                    figures[-1]["y0"], figures[-1]["y1"] = (
-                        figures[-1]["y1"],
-                        figures[-1]["y0"],
-                    )
-        figures.sort(key=lambda f: (f["y0"], f["x0"]))
-        table_drawings.append(_find_table_drawings(figures))
+            elif item[0] == "re":
+                figures.append(
+                    {
+                        "type": "re",
+                        "x0": item[1][0],
+                        "y0": item[1][1],
+                        "x1": item[1][2],
+                        "y1": item[1][3],
+                    }
+                )
+            # If the figure was extracted in reverse order, swap the coordinates.
+            if figures and (
+                figures[-1]["x0"] > figures[-1]["x1"]
+                or figures[-1]["y0"] > figures[-1]["y1"]
+            ):
+                figures[-1]["x0"], figures[-1]["x1"] = (
+                    figures[-1]["x1"],
+                    figures[-1]["x0"],
+                )
+                figures[-1]["y0"], figures[-1]["y1"] = (
+                    figures[-1]["y1"],
+                    figures[-1]["y0"],
+                )
+    figures.sort(key=lambda f: (f["y0"], f["x0"]))
+    table_drawings = _find_table_drawings(figures)
     return table_drawings
 
 

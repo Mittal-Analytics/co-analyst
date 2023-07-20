@@ -48,11 +48,10 @@ def info_extracted_from_metadata(metadata, fields):
     title_pattern = r"^\s*(.+):\s*\n(?:\s+.+\n)"
     title_matches = re.findall(title_pattern, metadata, re.MULTILINE)
 
-    response = []
-
+    metadata = []
     for i in range(len(title_matches)):
         res = {"title": title_matches[i], "fields": {}}
         for field, field_matches in zip(fields, matched_field_values):
             res["fields"][field] = field_matches[i]
-        response.append(res)
-    return response
+        metadata.append(res)
+    return metadata

@@ -99,11 +99,10 @@ def _table_extracted_from_page(page, table_drawing):
 
 
 # Extract tables from pdf page(s).
-def extract_tables(pdf_path, start=1, end=1):
-    # TODO: This will need to be changed while adding support for start and end.
-    table_drawings = artist.get_table_drawings(pdf_path, start, end)[0]
+def extract_tables(pdf_path, page_num=1):
+    table_drawings = artist.get_table_drawings(pdf_path, page_num)
 
-    metadata = "\n".join(md.page_range_metadata(pdf_path, start, end))
+    metadata = md.page_range_metadata(pdf_path, page_num, page_num)[0]
     info = md.info_extracted_from_metadata(
         metadata,
         [
@@ -146,15 +145,14 @@ def extract_tables(pdf_path, start=1, end=1):
 
     extracted_tables = []
     for page in pages:
-        for i in range(len(page)):
-            row = page[i]
-            page[i] = _empty_cells_removed(row)
+        for p in range(len(page)):
+            row = page[p]
+            page[p] = _empty_cells_removed(row)
 
         # TODO: We need to find a better solution than just uniting list markers.
         unifier.unite_separated_list_markers(page)
 
-        # TODO: This will need to be changed while adding support for start and end.
-        table = _table_extracted_from_page(page, table_drawings[0])
+        table = _table_extracted_from_page(page, table_drawings[pages.index(page)])
 
         column_positions = explorer.find_column_positions(table)
         unifier.unite_separated_rows(table, column_positions)
