@@ -49,8 +49,8 @@ def _is_top_left_vertex_present(figure_group):
 
 def _top_left_vertex_separated(figure_group):
     indexes = []
-    figure_group_len = len(figure_group)
-    for i in range(figure_group_len):
+    figure_group_length = len(figure_group)
+    for i in range(figure_group_length):
         if _is_top_left_vertex_present(figure_group[i:]):
             indexes.append(i)
     separated_figure_groups = []
@@ -64,8 +64,7 @@ def _top_left_vertex_separated(figure_group):
     return separated_figure_groups
 
 
-# TODO: Make sure this is efficient.
-def _is_overlapping(table1, table2):
+def _are_drawings_overlapping(table1, table2):
     t1_min_x = _min_x(table1)
     t1_min_y = _min_y(table1)
     t1_max_x = _max_x(table1)
@@ -89,22 +88,21 @@ def _is_overlapping(table1, table2):
     return False
 
 
-def _removed_and_merged(table_drawings):
-    invalid = False
-    new_table_drawings = []
-    for td in table_drawings:
-        if _is_top_left_vertex_present(td):
-            if new_table_drawings and _is_overlapping(new_table_drawings[-1], td):
-                new_table_drawings[-1].extend(td)
-                invalid = True
+def _merge_overlapping_drawings(provided_table_drawings):
+    table_drawings = []
+    for table_drawing in provided_table_drawings:
+        if _is_top_left_vertex_present(table_drawing):
+            if table_drawings and _are_drawings_overlapping(
+                table_drawings[-1], table_drawing
+            ):
+                table_drawings[-1].extend(table_drawing)
             else:
-                new_table_drawings.append(td)
-        elif new_table_drawings:
-            new_table_drawings[-1].extend(td)
-            invalid = True
-    if invalid:
-        return _removed_and_merged(new_table_drawings)
-    return new_table_drawings
+                table_drawings.append(table_drawing)
+        elif table_drawings:
+            table_drawings[-1].extend(table_drawing)
+    if len(table_drawings) < len(provided_table_drawings):
+        return _merge_overlapping_drawings(table_drawings)
+    return table_drawings
 
 
 def _find_table_drawings(figures):
@@ -123,7 +121,7 @@ def _find_table_drawings(figures):
     table_drawings = []
     for figure_group in figure_groups:
         table_drawings.extend(_top_left_vertex_separated(figure_group))
-    table_drawings = _removed_and_merged(table_drawings)
+    table_drawings = _merge_overlapping_drawings(table_drawings)
     return table_drawings
 
 
@@ -134,10 +132,10 @@ def get_table_drawings(pdf_path, start, end):
     for i in range(start - 1, end):
         pages.append(doc[i])
     for page in pages:
-        paths = page.get_cdrawings()
+        drawings = page.get_cdrawings()
         figures = []
-        for path in paths:
-            for item in path["items"]:
+        for drawing in drawings:
+            for item in drawing["items"]:
                 if item[0] == "l":
                     # Only straight lines.
                     if item[1][0] == item[2][0] or item[1][1] == item[2][1]:

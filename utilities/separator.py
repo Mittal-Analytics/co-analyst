@@ -14,14 +14,12 @@ def _find_separation_point(page):
     left_count.sort(key=lambda x: x[1], reverse=True)
 
     # Exclude the left values for cells of the first column.
-    # TODO: 100 is an approximation. Needs to be eradicated.
-    while left_count[0][0] < 100:
+    while left_count[0][0] < 100:  # TODO: Eradicate magic number.
         left_count.pop(0)
 
     separation_point = None
 
-    # TODO: 25 is an approximation. Needs to be eradicated.
-    if left_count[0][1] > 25:
+    if left_count[0][1] > 25:  # TODO: Eradicate magic number.
         separation_point = left_count[0][0]
 
     if separation_point:
