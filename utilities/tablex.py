@@ -2,7 +2,7 @@ from utilities import explorer, tools
 
 from . import artist
 from . import metadata as md
-from . import separator, unifier
+from . import unifier
 
 
 def _empty_cells_removed(provided_row):
@@ -19,7 +19,11 @@ def _narrowed_page(page, table_drawing):
     table = []
     for row in page:
         for cell in row:
-            if cell["top"] >= y0 and cell["top"] <= y1:
+            if (
+                x0 - 1 <= cell["left"] <= cell["right"] <= x1 + 1
+                and cell["top"] >= y0
+                and cell["top"] <= y1
+            ):
                 table.append(row)
                 break
     return table
@@ -90,12 +94,15 @@ def _format_table(provided_table):
     return table
 
 
-def _table_extracted_from_page(page, table_drawing):
-    table = _narrowed_page(page, table_drawing)
-    # Formatting tables twice is a hack to fix the mess made by first formatting.
-    table = _format_table(table)
-    table = _format_table(table)
-    return table
+def _tables_extracted_from_page(page, table_drawings):
+    tables = []
+    for table_drawing in table_drawings:
+        table = _narrowed_page(page, table_drawing)
+        # Formatting tables twice is a hack to fix the mess made by first formatting.
+        table = _format_table(table)
+        table = _format_table(table)
+        tables.append(table)
+    return tables
 
 
 # Extract tables from pdf page(s).
@@ -141,21 +148,17 @@ def extract_tables(pdf_path, page_num=1):
             row = [cell]
     page.append(sorted(row, key=lambda x: x["left"]))
 
-    pages = separator.separate_pages_if_two(page)
+    for p in range(len(page)):
+        row = page[p]
+        page[p] = _empty_cells_removed(row)
 
-    extracted_tables = []
-    for page in pages:
-        for p in range(len(page)):
-            row = page[p]
-            page[p] = _empty_cells_removed(row)
+    # TODO: We need to find a better solution than just uniting list markers.
+    unifier.unite_separated_list_markers(page)
 
-        # TODO: We need to find a better solution than just uniting list markers.
-        unifier.unite_separated_list_markers(page)
+    extracted_tables = _tables_extracted_from_page(page, table_drawings)
 
-        table = _table_extracted_from_page(page, table_drawings[pages.index(page)])
-
+    for table in extracted_tables:
         column_positions = explorer.find_column_positions(table)
         unifier.unite_separated_rows(table, column_positions)
 
-        extracted_tables.append(table)
     return extracted_tables

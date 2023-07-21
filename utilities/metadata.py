@@ -49,7 +49,8 @@ def info_extracted_from_metadata(metadata, fields):
     title_matches = re.findall(title_pattern, metadata, re.MULTILINE)
 
     metadata = []
-    for i in range(len(title_matches)):
+    title_matches_length = len(title_matches)
+    for i in range(title_matches_length):
         res = {"title": title_matches[i], "fields": {}}
         for field, field_matches in zip(fields, matched_field_values):
             res["fields"][field] = field_matches[i]
