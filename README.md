@@ -80,7 +80,8 @@ The `extract_tables` function of this module is where all the magic begins. It t
 
 ```py
 extract_tables(pdf_path, page_num)
-# page_num: Page number of the page you want to extract the tables from. If omitted, it will extract tables from the first page of the pdf, if any exists.
+# page_num: Page number of the page you want to extract the tables from.
+# If omitted, it will extract tables from the first page of the pdf, if any exists.
 # Returns a list of tables.
 ```
 
@@ -95,7 +96,8 @@ page_range_metadata(pdf_path, start, end)
 
 info_extracted_from_metadata(metadata, fields)
 # metadata: Metadata of the pdf or range of pages.
-# fields: List of fields you want to extract from the metadata. Like, font.size, font.color, etc.
+# fields: List of fields you want to extract from the metadata.
+# Like, font.size, font.color, etc.
 # Returns a list of dictionaries containing the extracted information.
 ```
 
@@ -109,7 +111,8 @@ unite_separated_list_markers(table)
 
 unite_separated_rows(table, column_positions)
 # column_positions: The list of x0 (start), x1 (end) values of columns.
-# Returns a list of list (rows) with the rows merged with the next row if they match certain criterion.
+# Returns a list of list (rows) with the rows merged with the next row
+# if they match certain criterion.
 ```
 
 ### artist.py
@@ -123,7 +126,8 @@ get_table_drawings(pdf_path, page_num)
 
 get_min_max_coordinates(table_drawing)
 # table_drawing: This is what "get_table_drawings" returns.
-# Returns the minimum and maximum x0 (start), x1 (end), y0 (top), y1 (bottom) values of the table.
+# Returns the minimum and maximum x0 (start), x1 (end),
+# y0 (top), y1 (bottom) values of the table.
 ```
 
 ### explorer.py
@@ -134,20 +138,24 @@ find_page_range(pdf_path, statement_name)
 # Returns the starting and ending page number of the financial statement.
 
 find_unit(pdf_path, page_num)
-# page_num: Page number of the page you want to extract the unit from. Usually the first page of the financial statement.
+# page_num: Page number of the page you want to extract the unit from.
+# Usually the first page of the financial statement.
 # Returns the unit of the financial statement.
 
 find_column_positions(table)
 # Returns a list of x0 (start), x1 (end) values of columns.
 
 find_statement_name(pdf_path, page_num)
-# page_num: Page number of the page you want to extract the statement name from. Usually the first page of the financial statement.
+# page_num: Page number of the page you want to extract the statement name from.
+# Usually the first page of the financial statement.
 
 find_max_cell_length(table)
 # Returns the maximum length of a cell["title"] in the table.
 
 find_first_row(table)
-# Returns the index of the row that contain the cells matching certain keywords like "assets", "capital and liabilities", etc. to identify the row next to the header of the table since header splits into multiple rows in many cases.
+# Returns the index of the row that contain the cells matching certain keywords like
+# "assets", "capital and liabilities", etc. to identify the row next to the header
+# of the table since header splits into multiple rows in many cases.
 
 find_column_names(rows)
 # rows: A list that contains all the rows that are above the first row.
